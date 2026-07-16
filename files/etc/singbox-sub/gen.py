@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
-# singbox-sub generator: fetch 3 sing-box-format subscriptions, merge into ONE
-# runtime config in RAM (/tmp), with per-sub last-good disk fallback for when
-# GitHub is unreachable. Switching subs is done live via clash_api (no regen);
-# this script only runs on refresh / boot.
+# singbox-sub generator: read settings + subscriptions from UCI, fetch and parse
+# each subscription, and merge everything into ONE runtime config in RAM (/tmp),
+# with a per-sub last-good disk cache for when a source is unreachable. Switching
+# subs is done live via clash_api (no regen); this script runs on refresh / boot.
 import json, re, subprocess, os, sys, hashlib, base64
 
 ETC   = "/etc/singbox-sub"
 RUN   = "/tmp/singbox-sub"
-LAST  = ETC + "/lastgood"          # disk fallback (tiny, change-gated -> no flash churn)
+LAST  = ETC + "/lastgood"          # disk cache (tiny, change-gated -> no flash churn)
 UIDIR = ETC + "/ui"
 CFG   = RUN + "/config.json"
-SUBS  = ETC + "/subs.conf"         # lines: name|url
-SETT  = ETC + "/settings.json"
 
 PROXY_TYPES = ("vless","vmess","trojan","shadowsocks","hysteria2","tuic",
                "shadowtls","anytls","wireguard","http","socks")
@@ -22,12 +20,12 @@ os.makedirs(RUN, exist_ok=True)   # tmpfs is empty after reboot; ensure it exist
 
 def read_uci():
     """Parse `uci show singbox-sub` -> (main_dict, [subscription_dicts]).
-    Returns (None,None) if the UCI config is absent (falls back to files)."""
+    Returns ({}, []) if the UCI config is absent."""
     try:
         out=subprocess.check_output(["uci","-q","show","singbox-sub"],
                                     stderr=subprocess.DEVNULL).decode("utf-8","replace")
     except Exception:
-        return None,None
+        return {},[]
     main={}; subs={}
     for ln in out.splitlines():
         if "=" not in ln: continue
@@ -44,28 +42,15 @@ def load_settings():
          "healthcheck_url":"https://www.gstatic.com/generate_204",
          "interval":"3m0s","tolerance":100,"active":"","max_nodes":120}
     main,_=read_uci()
-    if main:
-        for k in ("controller","secret","socks_port","healthcheck_url",
-                  "interval","max_nodes","active"):
-            if main.get(k): d[k]=main[k]
-    else:
-        try: d.update(json.load(open(SETT)))
-        except Exception as e: log("settings default:", e)
+    for k in ("controller","secret","socks_port","healthcheck_url",
+              "interval","max_nodes","active"):
+        if main.get(k): d[k]=main[k]
     return d
 
 def load_subs():
     _,sub_list=read_uci()
-    if sub_list is not None:
-        return [(s["name"],s["url"]) for s in sub_list
-                if s.get("enabled","1")=="1" and s.get("name") and s.get("url")]
-    subs=[]
-    try:
-        for ln in open(SUBS):
-            ln=ln.strip()
-            if not ln or ln.startswith("#") or "|" not in ln: continue
-            name,url=ln.split("|",1); subs.append((name.strip(),url.strip()))
-    except Exception as e: log("subs file:", e)
-    return subs
+    return [(s["name"],s["url"]) for s in sub_list
+            if s.get("enabled","1")=="1" and s.get("name") and s.get("url")]
 
 def strip_jsonc(s):
     s=re.sub(r'^\s*//.*$','',s,flags=re.M)
