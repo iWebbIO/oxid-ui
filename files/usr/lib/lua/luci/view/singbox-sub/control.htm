@@ -1,0 +1,146 @@
+<%+header%>
+
+<style>
+.sbx-grid{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px}
+.sbx-card{flex:1 1 320px;border:1px solid rgba(128,128,128,.25);border-radius:8px;padding:14px 16px;background:rgba(128,128,128,.04)}
+.sbx-card h3{margin:0 0 10px;font-size:15px}
+.sbx-badge{display:inline-block;padding:2px 9px;border-radius:12px;font-size:12px;font-weight:600}
+.sbx-up{background:#1f8f4e;color:#fff}.sbx-down{background:#c0392b;color:#fff}
+.sbx-active{font-size:20px;font-weight:700;word-break:break-all;margin:6px 0}
+.sbx-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.sbx-btn{cursor:pointer}
+.sbx-table{width:100%;border-collapse:collapse;font-size:13px}
+.sbx-table td,.sbx-table th{padding:4px 6px;border-bottom:1px solid rgba(128,128,128,.15);text-align:left}
+.sbx-muted{opacity:.65;font-size:12px}
+textarea.sbx-ta{width:100%;min-height:120px;font-family:monospace;font-size:12px}
+#sbx-msg{margin:8px 0;font-size:13px;min-height:18px}
+</style>
+
+<h2>Sing-Box Subscriptions — Control</h2>
+<div id="sbx-msg" class="sbx-muted"></div>
+
+<div class="sbx-grid">
+  <div class="sbx-card">
+    <h3>Status</h3>
+    <div>Service: <span id="sbx-run" class="sbx-badge sbx-down">…</span></div>
+    <div class="sbx-muted" style="margin-top:8px">Active config (main)</div>
+    <div id="sbx-active" class="sbx-active">…</div>
+    <div class="sbx-row">
+      <button class="cbi-button cbi-button-apply sbx-btn" onclick="sbxDo('stage','',this)">Refresh now (no reconnect)</button>
+      <button class="cbi-button cbi-button-reload sbx-btn" onclick="sbxDo('apply','',this)">Apply (reload core)</button>
+      <button class="cbi-button cbi-button-reset sbx-btn" onclick="sbxDo('restart','',this)">Restart</button>
+      <a id="sbx-dash" class="cbi-button cbi-button-action" target="_blank">Open dashboard ↗</a>
+    </div>
+  </div>
+
+  <div class="sbx-card">
+    <h3>Switch active config (graceful)</h3>
+    <div class="sbx-muted">Instant, keeps the core running.</div>
+    <div class="sbx-row">
+      <select id="sbx-sel" style="min-width:180px"></select>
+      <button class="cbi-button cbi-button-apply sbx-btn" onclick="sbxSwitch()">Switch</button>
+    </div>
+    <h3 style="margin-top:16px">Subscription pools</h3>
+    <table class="sbx-table"><tbody id="sbx-subs"></tbody></table>
+  </div>
+</div>
+
+<div class="sbx-grid">
+  <div class="sbx-card">
+    <h3>Static nodes</h3>
+    <table class="sbx-table"><tbody id="sbx-statics"></tbody></table>
+    <div class="sbx-muted" style="margin-top:6px">Static nodes always work, even with GitHub down.</div>
+  </div>
+
+  <div class="sbx-card">
+    <h3>Add AmneziaWG</h3>
+    <div class="sbx-row"><input id="sbx-awg-name" placeholder="node name (e.g. amnezia2)" style="min-width:200px"></div>
+    <textarea id="sbx-awg-body" class="sbx-ta" placeholder="Paste your AmneziaWG / WireGuard [Interface]…[Peer] config here"></textarea>
+    <div class="sbx-row"><button class="cbi-button cbi-button-add sbx-btn" onclick="sbxImport('awg-import','sbx-awg-name','sbx-awg-body')">Import AmneziaWG</button></div>
+  </div>
+
+  <div class="sbx-card">
+    <h3>Add static node (raw sing-box JSON)</h3>
+    <div class="sbx-row"><input id="sbx-raw-name" placeholder="node name" style="min-width:200px"></div>
+    <textarea id="sbx-raw-body" class="sbx-ta" placeholder='One sing-box outbound OR endpoint object with a "tag" and "type", e.g. {"type":"vless","tag":"my-node",...}'></textarea>
+    <div class="sbx-row"><button class="cbi-button cbi-button-add sbx-btn" onclick="sbxImport('static-add','sbx-raw-name','sbx-raw-body')">Add node</button></div>
+  </div>
+</div>
+
+<script type="text/javascript">
+var SBX_STATUS = '<%=url("admin","services","singbox-sub","status")%>';
+var SBX_DO     = '<%=url("admin","services","singbox-sub","do")%>';
+var SBX_TOKEN  = '<%=token%>';
+
+function sbxMsg(t, err){ var e=document.getElementById('sbx-msg'); e.textContent=t||''; e.style.color=err?'#c0392b':''; }
+
+function sbxPost(params){
+  params.token = SBX_TOKEN;
+  var body = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
+  return fetch(SBX_DO, {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:body, credentials:'same-origin'})
+    .then(function(r){return r.json();});
+}
+
+function sbxDo(act, arg, btn){
+  if(btn){btn.disabled=true;} sbxMsg('Running '+act+'…');
+  sbxPost({act:act, arg:arg||''}).then(function(j){
+    sbxMsg((j.out||act).trim()); if(btn){btn.disabled=false;} setTimeout(sbxRefresh, 1200);
+  }).catch(function(e){ sbxMsg('Error: '+e, true); if(btn){btn.disabled=false;} });
+}
+
+function sbxSwitch(){
+  var v=document.getElementById('sbx-sel').value; if(!v) return;
+  sbxDo('switch', v, null);
+}
+
+function sbxImport(act, nameId, bodyId){
+  var name=document.getElementById(nameId).value.trim().replace(/[^A-Za-z0-9_.-]/g,'');
+  var body=document.getElementById(bodyId).value;
+  if(!name){ sbxMsg('Enter a node name', true); return; }
+  if(!body.trim()){ sbxMsg('Paste the config', true); return; }
+  sbxMsg('Importing '+name+'…');
+  sbxPost({act:act, arg:name, body:body}).then(function(j){
+    sbxMsg((j.out||'done').trim(), /ERR/i.test(j.out||'')); document.getElementById(bodyId).value=''; setTimeout(sbxRefresh, 1000);
+  }).catch(function(e){ sbxMsg('Error: '+e, true); });
+}
+
+function sbxDelStatic(name){
+  if(!confirm('Delete static node "'+name+'"?')) return;
+  sbxDo('static-del', name, null);
+}
+
+function sbxRefresh(){
+  fetch(SBX_STATUS, {credentials:'same-origin'}).then(function(r){return r.json();}).then(function(s){
+    var run=document.getElementById('sbx-run');
+    run.textContent = s.running ? 'running' : 'stopped';
+    run.className = 'sbx-badge ' + (s.running ? 'sbx-up' : 'sbx-down');
+    document.getElementById('sbx-active').textContent = s.active || '(none)';
+    // dashboard link
+    document.getElementById('sbx-dash').href = 'http://' + location.hostname + ':9090/ui/';
+    // selector options: subs + endpoints + direct
+    var sel=document.getElementById('sbx-sel'), cur=sel.value;
+    var opts=[]; (s.subs||[]).forEach(function(t){opts.push([t.replace(/^sub:/,''), t]);});
+    (s.endpoints||[]).forEach(function(t){opts.push([t, 'static: '+t]);});
+    opts.push(['direct','direct']);
+    sel.innerHTML=''; opts.forEach(function(o){var op=document.createElement('option');op.value=o[0];op.textContent=o[1];sel.appendChild(op);});
+    if(cur) sel.value=cur;
+    // sub pools
+    var tb=document.getElementById('sbx-subs'); tb.innerHTML='';
+    (s.subs||[]).forEach(function(t){
+      var n=t.replace(/^sub:/,''); var c=(s.counts&&s.counts[t])||0;
+      tb.innerHTML+='<tr><td>'+n+'</td><td class="sbx-muted">'+c+' nodes</td></tr>';
+    });
+    // statics
+    var st=document.getElementById('sbx-statics'); st.innerHTML='';
+    (s.statics||[]).forEach(function(x){
+      st.innerHTML+='<tr><td><b>'+x.tag+'</b></td><td class="sbx-muted">'+(x.type||'')+'</td>'+
+        '<td style="text-align:right"><button class="cbi-button cbi-button-remove" onclick="sbxDelStatic(\''+x.tag+'\')">Delete</button></td></tr>';
+    });
+  }).catch(function(e){ sbxMsg('status error: '+e, true); });
+}
+
+sbxRefresh();
+setInterval(sbxRefresh, 5000);
+</script>
+
+<%+footer%>

@@ -1,0 +1,16 @@
+# local build artifacts / third-party sources
+build/sbx-src/
+build/sing-box-awg
+build/*.zip
+build/sdk/
+*.tar.gz
+*.zip
+
+# never commit real secrets or keys — only the .example is tracked
+files/etc/singbox-sub/static/*.json
+!files/etc/singbox-sub/static/*.json.example
+
+# editor / os
+.DS_Store
+Thumbs.db
+*.swp
