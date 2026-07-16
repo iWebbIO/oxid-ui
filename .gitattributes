@@ -1,0 +1,13 @@
+# Scripts run on OpenWrt (Linux) — force LF so CRLF never breaks them.
+* text=auto eol=lf
+*.sh   text eol=lf
+*.py   text eol=lf
+*.lua  text eol=lf
+*.htm  text eol=lf
+*.json text eol=lf
+files/etc/init.d/singbox-sub  text eol=lf
+files/etc/config/singbox-sub  text eol=lf
+
+*.png binary
+*.zip binary
+*.tar.gz binary
