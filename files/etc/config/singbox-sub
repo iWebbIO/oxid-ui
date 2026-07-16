@@ -1,0 +1,32 @@
+
+config singbox 'main'
+	# left empty on purpose — install.sh generates a random secret
+	option secret ''
+	option controller '0.0.0.0:9090'
+	option socks_port '7890'
+	option max_nodes '120'
+	option interval '3m0s'
+	option healthcheck_url 'https://www.gstatic.com/generate_204'
+	# active outbound (main): a subscription name, a static tag (e.g. amnezia), or 'direct'
+	option active 'reality'
+	# re-fetch subscriptions into RAM every hour without restarting the core
+	option hourly '1'
+	# keep the main preferred; fail over to a healthy sub if it dies
+	option watchdog '1'
+
+# Example subscriptions (public PSG lists). Replace with your own; each URL may be
+# sing-box JSON, a base64 link-list, or plaintext vless://…/hy2://… share links.
+config subscription
+	option name 'reality'
+	option url 'https://raw.githubusercontent.com/itsyebekhe/PSG/main/subscriptions/singbox/reality.json'
+	option enabled '1'
+
+config subscription
+	option name 'hy2'
+	option url 'https://raw.githubusercontent.com/itsyebekhe/PSG/main/subscriptions/singbox/hy2.json'
+	option enabled '1'
+
+config subscription
+	option name 'xhttp'
+	option url 'https://raw.githubusercontent.com/itsyebekhe/PSG/main/subscriptions/singbox/xhttp_ipv4.json'
+	option enabled '1'

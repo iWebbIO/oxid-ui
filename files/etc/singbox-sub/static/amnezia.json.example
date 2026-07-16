@@ -1,0 +1,25 @@
+{
+  "//": "Example AmneziaWG endpoint. Copy to amnezia.json and fill in your own values,",
+  "//tip": "or just paste your wg-quick config into the GUI's 'Add AmneziaWG' box.",
+  "type": "wireguard",
+  "tag": "amnezia",
+  "system": false,
+  "mtu": 1280,
+  "udp_timeout": "5m0s",
+  "address": ["10.8.1.2/32"],
+  "private_key": "REPLACE_WITH_YOUR_INTERFACE_PRIVATE_KEY",
+  "peers": [
+    {
+      "address": "YOUR.SERVER.IP",
+      "port": 51820,
+      "public_key": "REPLACE_WITH_PEER_PUBLIC_KEY",
+      "pre_shared_key": "REPLACE_WITH_PRESHARED_KEY_OR_REMOVE",
+      "allowed_ips": ["0.0.0.0/0", "::/0"],
+      "persistent_keepalive_interval": 25
+    }
+  ],
+  "jc": 6, "jmin": 10, "jmax": 50,
+  "s1": 134, "s2": 17, "s3": 3, "s4": 4,
+  "h1": "REPLACE_H1", "h2": "REPLACE_H2", "h3": "REPLACE_H3", "h4": "REPLACE_H4",
+  "i1": "REPLACE_OR_REMOVE_I1_JUNK_PACKET"
+}
