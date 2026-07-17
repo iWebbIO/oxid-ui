@@ -378,17 +378,16 @@ error states, accessibility, telemetry-free health page.
 
 ---
 
-## 14. Open decisions (need your call)
+## 14. Decisions
 
-1. **UI stack** — recommend **LuCI JS** (native, polished, integrated). Alternative:
-   a bespoke SPA served locally (max polish, but heavier + auth/rebuild work). 
-2. **Rebrand now vs later** — recommend **Phase 1** (cheapest before the UI hardcodes
-   names).
-3. **Routing scope** — oxid owns outbound composition (groups/chains) for sure; how much
-   *domain routing* should it do vs leaving that to passwall2? Recommend: full internal
-   routing available but "Use for everything" default, so it complements passwall2.
-4. **Core distribution** — ship a prebuilt `sing-box-awg` per target, or reproducible
-   build only? Recommend: **both** — CI prebuilts + verifiable recipe.
+1. **UI stack** — ✅ **DECIDED: Modern LuCI JS** (native, polished, integrated; the
+   homeproxy/nikki-class stack). Bespoke SPA reconsidered only if we outgrow it.
+2. **Rebrand now vs later** — **Phase 1** (cheapest before the UI hardcodes names).
+3. **Routing scope** — oxid owns outbound composition (groups/chains); full internal
+   domain routing available but "Use for everything" is the default, so it complements
+   passwall2 rather than fighting it.
+4. **Core distribution** — **both**: CI prebuilts per target **and** the verifiable
+   reproducible-build recipe (`build/build-awg.sh`).
 
 ---
 
