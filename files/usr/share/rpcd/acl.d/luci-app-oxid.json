@@ -1,0 +1,11 @@
+{
+	"luci-app-oxid": {
+		"description": "Grant access to the OXID app",
+		"read": {
+			"uci": [ "oxid" ]
+		},
+		"write": {
+			"uci": [ "oxid" ]
+		}
+	}
+}

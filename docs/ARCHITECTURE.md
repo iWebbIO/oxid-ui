@@ -4,7 +4,7 @@
 
 ```
 subscriptions (GitHub/URLs)                 static nodes (disk)
-        │  fetch (curl)                             │  /etc/singbox-sub/static/*.json
+        │  fetch (curl)                             │  /etc/oxid/static/*.json
         ▼                                           ▼
    gen.py  ── parse (sing-box JSON | base64 | share-links) ──► ONE config.json in RAM (/tmp)
         │            + namespaced urltest groups + PROXY selector + endpoints
@@ -19,16 +19,16 @@ subscriptions (GitHub/URLs)                 static nodes (disk)
 
 | Path | On | What |
 |---|---|---|
-| `/etc/config/singbox-sub` | flash (UCI) | settings + subscription list (small, static) |
-| `/etc/singbox-sub/gen.py` | flash | generator + subscription parser |
-| `/etc/singbox-sub/ctl.sh` | flash | control surface (stage/apply/switch/status/watchdog/…) |
-| `/etc/singbox-sub/awg2singbox.py` | flash | wg-quick → sing-box endpoint converter |
-| `/etc/singbox-sub/static/*.json` | flash | static nodes (AmneziaWG, etc.) |
-| `/etc/singbox-sub/lastgood/*.json` | flash | last-good per-subscription cache (offline fallback) |
-| `/etc/singbox-sub/config.last` | flash | last valid full config (boot safety net) |
-| `/etc/singbox-sub/ui/` | flash | zashboard static files |
-| `/tmp/singbox-sub/config.json` | **RAM** | the live runtime config (regenerated, never on flash) |
-| `/tmp/singbox-sub/cache.db` | **RAM** | sing-box clash cache |
+| `/etc/config/oxid` | flash (UCI) | settings + subscription list (small, static) |
+| `/etc/oxid/gen.py` | flash | generator + subscription parser |
+| `/etc/oxid/ctl.sh` | flash | control surface (stage/apply/switch/status/watchdog/…) |
+| `/etc/oxid/awg2singbox.py` | flash | wg-quick → sing-box endpoint converter |
+| `/etc/oxid/static/*.json` | flash | static nodes (AmneziaWG, etc.) |
+| `/etc/oxid/lastgood/*.json` | flash | last-good per-subscription cache (offline fallback) |
+| `/etc/oxid/config.last` | flash | last valid full config (boot safety net) |
+| `/etc/oxid/ui/` | flash | zashboard static files |
+| `/tmp/oxid/config.json` | **RAM** | the live runtime config (regenerated, never on flash) |
+| `/tmp/oxid/cache.db` | **RAM** | sing-box clash cache |
 
 Node lists — the part that grows and churns — only ever exist in RAM. Flash holds a few KB of settings, so refreshing subscriptions doesn't wear storage.
 

@@ -19,7 +19,7 @@ textarea.sbx-ta{width:100%;min-height:120px;font-family:monospace;font-size:12px
 #sbx-msg{margin:8px 0;font-size:13px;min-height:18px}
 </style>
 
-<h2>Sing-Box Subscriptions — Control</h2>
+<h2>OXID — Control</h2>
 <div id="sbx-msg" class="sbx-muted"></div>
 
 <div class="sbx-grid">
@@ -76,8 +76,8 @@ textarea.sbx-ta{width:100%;min-height:120px;font-family:monospace;font-size:12px
 </div>
 
 <script type="text/javascript">
-var SBX_STATUS = '<%=url("admin","services","singbox-sub","status")%>';
-var SBX_DO     = '<%=url("admin","services","singbox-sub","do")%>';
+var SBX_STATUS = '<%=url("admin","services","oxid","status")%>';
+var SBX_DO     = '<%=url("admin","services","oxid","do")%>';
 var SBX_TOKEN  = '<%=token%>';
 
 function sbxMsg(t, err){ var e=document.getElementById('sbx-msg'); e.textContent=t||''; e.style.color=err?'#c0392b':''; }

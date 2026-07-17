@@ -4,16 +4,16 @@
 START=95
 STOP=10
 USE_PROCD=1
-CFG=/tmp/singbox-sub/config.json
-GEN=/etc/singbox-sub/gen.py
-LOG=/tmp/singbox-sub/gen.log
+CFG=/tmp/oxid/config.json
+GEN=/etc/oxid/gen.py
+LOG=/tmp/oxid/gen.log
 
 start_service() {
-    mkdir -p /tmp/singbox-sub                 # tmpfs is empty after every reboot
+    mkdir -p /tmp/oxid                 # tmpfs is empty after every reboot
     /usr/bin/python3 "$GEN" > "$LOG" 2>&1
     # boot safety net: if generation ever fails, fall back to last-known-good
     if ! /usr/bin/sing-box-awg check -c "$CFG" 2>/dev/null; then
-        [ -f /etc/singbox-sub/config.last ] && cp /etc/singbox-sub/config.last "$CFG"
+        [ -f /etc/oxid/config.last ] && cp /etc/oxid/config.last "$CFG"
     fi
     procd_open_instance
     procd_set_param command /usr/bin/sing-box-awg run -c "$CFG"
@@ -23,11 +23,11 @@ start_service() {
     procd_set_param limits nofile="65535 65535"
     procd_close_instance
     # once the network is really up, pull fresh subs into RAM without a restart
-    ( sleep 90; [ "$(uci -q get singbox-sub.main.hourly)" != "0" ] && /etc/singbox-sub/ctl.sh 'stage!' ) >/dev/null 2>&1 &
+    ( sleep 90; [ "$(uci -q get oxid.main.hourly)" != "0" ] && /etc/oxid/oxid 'stage!' ) >/dev/null 2>&1 &
 }
 
 reload_service() {
-    mkdir -p /tmp/singbox-sub
+    mkdir -p /tmp/oxid
     /usr/bin/python3 "$GEN" > "$LOG" 2>&1
     if /usr/bin/sing-box-awg check -c "$CFG"; then
         restart

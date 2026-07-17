@@ -11,7 +11,7 @@
 REPO="${OXID_REPO:-iWebbIO/oxid-ui}"
 BRANCH="${OXID_BRANCH:-main}"
 TARBALL="https://codeload.github.com/$REPO/tar.gz/refs/heads/$BRANCH"
-SOCKS="127.0.0.1:$(uci -q get singbox-sub.main.socks_port 2>/dev/null || echo 7890)"
+SOCKS="127.0.0.1:$(uci -q get oxid.main.socks_port 2>/dev/null || echo 7890)"
 TMP=/tmp/oxid-update
 say() { echo ">> $*"; }
 

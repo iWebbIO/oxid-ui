@@ -1,10 +1,10 @@
-local m = Map("singbox-sub", translate("Sing-Box Subscriptions"),
+local m = Map("oxid", translate("OXID — Settings & Subscriptions"),
 	translate("Subscription-fed sing-box balancer feeding a local SOCKS at 127.0.0.1:7890. " ..
 		"Nodes live in RAM; only these settings sit on flash. Node lists and the beautiful " ..
 		"dashboard are on the Control tab."))
 
 function m.on_after_commit(self)
-	luci.sys.call("/etc/singbox-sub/ctl.sh apply >/tmp/singbox-sub/apply.log 2>&1 &")
+	luci.sys.call("/etc/oxid/oxid apply >/tmp/oxid/apply.log 2>&1 &")
 end
 
 local s = m:section(NamedSection, "main", "singbox", translate("Core"))
@@ -14,10 +14,10 @@ s.anonymous = true
 local act = s:option(ListValue, "active", translate("Active config (main outbound)"),
 	translate("Applied on Save & Apply (brief reconnect). To switch WITHOUT reconnecting, use the Control tab."))
 act:value("direct", "direct (no proxy)")
-m.uci:foreach("singbox-sub", "subscription", function(sn)
+m.uci:foreach("oxid", "subscription", function(sn)
 	if sn.name then act:value(sn.name, "sub: " .. sn.name) end
 end)
-local sd = "/etc/singbox-sub/static"
+local sd = "/etc/oxid/static"
 if nixio.fs.access(sd) then
 	for f in nixio.fs.dir(sd) do
 		if f:match("%.json$") then

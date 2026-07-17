@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-# singbox-sub generator: read settings + subscriptions from UCI, fetch and parse
+# oxid generator: read settings + subscriptions from UCI, fetch and parse
 # each subscription, and merge everything into ONE runtime config in RAM (/tmp),
 # with a per-sub last-good disk cache for when a source is unreachable. Switching
 # subs is done live via clash_api (no regen); this script runs on refresh / boot.
 import json, re, subprocess, os, sys, hashlib, base64
 
-ETC   = "/etc/singbox-sub"
-RUN   = "/tmp/singbox-sub"
+ETC   = "/etc/oxid"
+RUN   = "/tmp/oxid"
 LAST  = ETC + "/lastgood"          # disk cache (tiny, change-gated -> no flash churn)
 UIDIR = ETC + "/ui"
 CFG   = RUN + "/config.json"
@@ -20,18 +20,18 @@ os.makedirs(RUN, exist_ok=True)   # tmpfs is empty after reboot; ensure it exist
 
 _UCI_CACHE=None
 def uci_model():
-    """Parse `uci -q show singbox-sub` into {section_id: {_type, opt: value...}}.
+    """Parse `uci -q show oxid` into {section_id: {_type, opt: value...}}.
     List options (member/hop) become Python lists. Cached per process."""
     global _UCI_CACHE
     if _UCI_CACHE is not None: return _UCI_CACHE
     secs={}
     try:
-        out=subprocess.check_output(["uci","-q","show","singbox-sub"],
+        out=subprocess.check_output(["uci","-q","show","oxid"],
                                     stderr=subprocess.DEVNULL).decode("utf-8","replace")
     except Exception:
         _UCI_CACHE=secs; return secs
     for ln in out.splitlines():
-        m=re.match(r"^singbox-sub\.([^.=]+)(?:\.([^=]+))?=(.*)$", ln)
+        m=re.match(r"^oxid\.([^.=]+)(?:\.([^=]+))?=(.*)$", ln)
         if not m: continue
         sec,opt,val=m.group(1),m.group(2),m.group(3)
         d=secs.setdefault(sec,{})

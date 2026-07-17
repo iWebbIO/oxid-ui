@@ -59,12 +59,12 @@ Everything is in **Services → Sing-Box Subs**:
 From the shell, `ctl.sh` is the control surface:
 
 ```sh
-/etc/singbox-sub/ctl.sh status              # JSON status
-/etc/singbox-sub/ctl.sh switch <tag>        # graceful switch (sub name / static tag / direct)
-/etc/singbox-sub/ctl.sh stage!              # re-fetch subs into RAM, no restart
-/etc/singbox-sub/ctl.sh apply               # regenerate + restart core
-/etc/singbox-sub/ctl.sh awg-import <name>   # wg-quick on stdin -> AmneziaWG node
-/etc/singbox-sub/ctl.sh static-add <name>   # raw sing-box JSON on stdin -> static node
+/etc/oxid/ctl.sh status              # JSON status
+/etc/oxid/ctl.sh switch <tag>        # graceful switch (sub name / static tag / direct)
+/etc/oxid/ctl.sh stage!              # re-fetch subs into RAM, no restart
+/etc/oxid/ctl.sh apply               # regenerate + restart core
+/etc/oxid/ctl.sh awg-import <name>   # wg-quick on stdin -> AmneziaWG node
+/etc/oxid/ctl.sh static-add <name>   # raw sing-box JSON on stdin -> static node
 ```
 
 ## Building the AmneziaWG core
@@ -74,9 +74,9 @@ Upstream sing-box has no AmneziaWG; it lives in forks. `build/build-awg.sh` cros
 ## How it's laid out
 
 ```
-files/etc/singbox-sub/       gen.py (generator+parser), ctl.sh, awg2singbox.py, static/
-files/etc/init.d/singbox-sub procd service (RAM config, boot safety net)
-files/etc/config/singbox-sub UCI: settings + subscription list
+files/etc/oxid/       gen.py (generator+parser), ctl.sh, awg2singbox.py, static/
+files/etc/init.d/oxid procd service (RAM config, boot safety net)
+files/etc/config/oxid UCI: settings + subscription list
 files/usr/lib/lua/luci/...    LuCI app (controller, CBI settings, control view)
 build/build-awg.sh            build the AmneziaWG sing-box fork
 ```

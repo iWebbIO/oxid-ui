@@ -1,14 +1,14 @@
 #!/bin/sh
-# singbox-sub control surface — used by cron and the LuCI app.
-ETC=/etc/singbox-sub
+# oxid control surface — used by cron and the LuCI app.
+ETC=/etc/oxid
 STATIC=$ETC/static
-CFG=/tmp/singbox-sub/config.json
+CFG=/tmp/oxid/config.json
 BIN=/usr/bin/sing-box-awg
 GEN="python3 $ETC/gen.py"
 
-mkdir -p /tmp/singbox-sub   # tmpfs is wiped on reboot; every path below needs it
+mkdir -p /tmp/oxid   # tmpfs is wiped on reboot; every path below needs it
 
-secret() { uci -q get singbox-sub.main.secret; }
+secret() { uci -q get oxid.main.secret; }
 api() { # api METHOD PATH [DATA]
     local m="$1" p="$2" d="$3"
     if [ -n "$d" ]; then
@@ -20,7 +20,7 @@ api() { # api METHOD PATH [DATA]
 }
 
 stage() {  # graceful: rebuild RAM config, validate, DO NOT restart
-    $GEN 2>>/tmp/singbox-sub/gen.log
+    $GEN 2>>/tmp/oxid/gen.log
     if $BIN check -c "$CFG"; then
         cmp -s "$CFG" "$ETC/config.last" 2>/dev/null || cp "$CFG" "$ETC/config.last"  # boot safety net
         echo "staged"
@@ -28,7 +28,7 @@ stage() {  # graceful: rebuild RAM config, validate, DO NOT restart
 }
 
 member() { # resolve a bare tag (sub name / static / direct) to its selector member
-    local t="$1"; uci -q show singbox-sub | grep -q "\.name='$t'" && echo "sub:$t" || echo "$t"
+    local t="$1"; uci -q show oxid | grep -q "\.name='$t'" && echo "sub:$t" || echo "$t"
 }
 healthy() { # healthy <selector-member> -> 0 if a health probe through it succeeds
     # own curl with a longer -m than api() (idle AmneziaWG needs time to handshake)
@@ -37,25 +37,25 @@ healthy() { # healthy <selector-member> -> 0 if a health probe through it succee
         2>/dev/null | grep -q '"delay"'
 }
 watchdog() { # keep the main outbound preferred; fail over to a working sub if it dies
-    [ "$(uci -q get singbox-sub.main.watchdog)" = "0" ] && return 0
+    [ "$(uci -q get oxid.main.watchdog)" = "0" ] && return 0
     pgrep -f "sing-box-awg run -c $CFG" >/dev/null || return 0
-    local main cur; main=$(uci -q get singbox-sub.main.active); [ -n "$main" ] || return 0
+    local main cur; main=$(uci -q get oxid.main.active); [ -n "$main" ] || return 0
     main=$(member "$main")
     cur=$(api GET /proxies/PROXY 2>/dev/null | python3 -c "import sys,json;print(json.load(sys.stdin).get('now',''))" 2>/dev/null)
     if healthy "$main"; then
-        [ "$cur" != "$main" ] && { api PUT /proxies/PROXY "{\"name\":\"$main\"}" >/dev/null; logger -t singbox-sub "watchdog: restored $main"; }
+        [ "$cur" != "$main" ] && { api PUT /proxies/PROXY "{\"name\":\"$main\"}" >/dev/null; logger -t oxid "watchdog: restored $main"; }
     elif ! healthy "$cur"; then
         for g in $(python3 -c "import json;print(' '.join(o['tag'] for o in json.load(open('$CFG'))['outbounds'] if o.get('tag','').startswith('sub:')))" 2>/dev/null); do
-            if healthy "$g"; then api PUT /proxies/PROXY "{\"name\":\"$g\"}" >/dev/null; logger -t singbox-sub "watchdog: $main down, failover to $g"; break; fi
+            if healthy "$g"; then api PUT /proxies/PROXY "{\"name\":\"$g\"}" >/dev/null; logger -t oxid "watchdog: $main down, failover to $g"; break; fi
         done
     fi
 }
 apply() {  # rebuild + validate + restart (loads fresh nodes into the core)
-    $GEN 2>>/tmp/singbox-sub/gen.log
+    $GEN 2>>/tmp/oxid/gen.log
     if $BIN check -c "$CFG"; then
-        /etc/init.d/singbox-sub restart
+        /etc/init.d/oxid restart
         # re-assert active outbound (cache_file may restore a stale selection)
-        local t; t=$(uci -q get singbox-sub.main.active)
+        local t; t=$(uci -q get oxid.main.active)
         [ -n "$t" ] && { i=0; while [ $i -lt 10 ]; do api GET /version >/dev/null 2>&1 && break; sleep 1; i=$((i+1)); done; switch "$t" >/dev/null 2>&1; }
         echo "applied"
     else echo "ERR invalid; not applied"; return 1; fi
@@ -63,10 +63,10 @@ apply() {  # rebuild + validate + restart (loads fresh nodes into the core)
 switch() { # switch active outbound live (no restart) + persist to UCI
     local tag="$1"; [ -n "$tag" ] || { echo "usage: switch <tag>"; return 1; }
     # persist: store bare name (sub name / static tag / direct)
-    uci set singbox-sub.main.active="$tag"; uci commit singbox-sub
+    uci set oxid.main.active="$tag"; uci commit oxid
     # resolve to selector member: sub name -> sub:<name>
     local member="$tag"
-    uci -q show singbox-sub | grep -q "\.name='$tag'" && member="sub:$tag"
+    uci -q show oxid | grep -q "\.name='$tag'" && member="sub:$tag"
     api PUT /proxies/PROXY "{\"name\":\"$member\"}" >/dev/null && echo "switched to $member" || echo "ERR switch"
 }
 status() { # JSON status for the GUI
@@ -93,10 +93,10 @@ print(json.dumps({"running":up=="1","active":now,"subs":subs,"endpoints":eps,"co
 PY
 }
 case "$1" in
-    stage)   [ "$(uci -q get singbox-sub.main.hourly)" = "0" ] && { echo "hourly disabled"; exit 0; }; stage ;;
+    stage)   [ "$(uci -q get oxid.main.hourly)" = "0" ] && { echo "hourly disabled"; exit 0; }; stage ;;
     stage!)  stage ;;                       # force stage regardless of hourly flag
     apply)   apply ;;
-    restart) /etc/init.d/singbox-sub restart; echo restarted ;;
+    restart) /etc/init.d/oxid restart; echo restarted ;;
     switch)  switch "$2" ;;
     watchdog) watchdog ;;
     status)  status ;;
@@ -113,5 +113,5 @@ case "$1" in
         if ! python3 -c "import json,sys;o=json.load(open('$STATIC/$2.json'));sys.exit(0 if o.get('tag') and o.get('type') else 1)" 2>/dev/null; then
             rm -f "$STATIC/$2.json"; echo "ERR JSON must have tag+type"; exit 1; fi
         if stage | grep -q staged; then echo "added $2"; else rm -f "$STATIC/$2.json"; stage >/dev/null; echo "ERR node rejected by sing-box; removed"; exit 1; fi ;;
-    *) echo "usage: ctl.sh {stage|apply|restart|switch <tag>|status|watchdog|self-update|self-update-apply|static-del <n>|awg-import <n>|static-add <n>}" ;;
+    *) echo "usage: oxid {stage|apply|restart|switch <tag>|status|watchdog|self-update|self-update-apply|static-del <n>|awg-import <n>|static-add <n>}" ;;
 esac
