@@ -405,5 +405,22 @@ error states, accessibility, telemetry-free health page.
 
 ---
 
+## 15. Requested extensions (committed, later phases)
+
+- **Multiple balancer strategies** — leastPing, leastLoad, round-robin, random, not just
+  latency-urltest + manual-select. sing-box natively offers only `urltest`/`selector`; the
+  others come from **Xray's balancer** (`leastPing`/`leastLoad`/`roundRobin`/`random`) or
+  the sing-box-lx fork's round-robin build tag. So this rides on:
+- **Xray core support** — a pluggable **core abstraction** so a group/route can run on
+  sing-box *or* xray. oxid compiles the model to the chosen core's config; xray unlocks the
+  full balancer-strategy set and some transports. Keeps the same UCI model and UI; only the
+  compiler backend differs per core. (passwall already ships xray-core on the box.)
+- **Convenient route builder** — the Routing view is the priority surface: composing a
+  balancer + chain (e.g. "balance a subscription, exit via socks5") must be a couple of
+  clicks / drags, with live preview and sane defaults. Convenience is the acceptance bar,
+  not just capability.
+
+---
+
 *Engine today (keep): RAM config, graceful staging, offline lastgood, boot fallback,
 watchdog, AmneziaWG fork, zashboard. Everything above builds on it.*

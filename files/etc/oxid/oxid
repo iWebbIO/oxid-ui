@@ -69,28 +69,59 @@ switch() { # switch active outbound live (no restart) + persist to UCI
     uci -q show oxid | grep -q "\.name='$tag'" && member="sub:$tag"
     api PUT /proxies/PROXY "{\"name\":\"$member\"}" >/dev/null && echo "switched to $member" || echo "ERR switch"
 }
-status() { # JSON status for the GUI
+status() { # JSON status for the GUI (config + live clash-api data)
     local up=0; pgrep -f "sing-box-awg run -c $CFG" >/dev/null && up=1
-    UP="$up" PROXY_JSON="$(api GET /proxies/PROXY 2>/dev/null)" python3 - <<PY 2>/dev/null
-import sys,json,os
-up=os.environ.get("UP","0")
-try: now=json.loads(os.environ.get("PROXY_JSON","")).get("now","")
-except: now=""
+    UP="$up" SECRET="$(secret)" \
+    PORT="$(uci -q get oxid.main.socks_port || echo 7890)" \
+    CTRL="$(uci -q get oxid.main.controller || echo 0.0.0.0:9090)" \
+    PROXIES="$(api GET /proxies 2>/dev/null)" VER="$(api GET /version 2>/dev/null)" \
+    python3 - <<PY 2>/dev/null
+import json,os
+def j(e):
+    try: return json.loads(os.environ.get(e,"") or "{}")
+    except: return {}
+up=os.environ.get("UP","0")=="1"
+prox=j("PROXIES").get("proxies",{})
+now=prox.get("PROXY",{}).get("now","")
+ver=j("VER").get("version","")
 cfg={}
 try: cfg=json.load(open("$CFG"))
 except: pass
-subs=[o["tag"] for o in cfg.get("outbounds",[]) if o.get("tag","").startswith("sub:")]
+obs=cfg.get("outbounds",[]); by={o.get("tag"):o for o in obs}
+subs=[o["tag"] for o in obs if o.get("tag","").startswith("sub:")]
+grps=[o["tag"] for o in obs if o.get("tag","").startswith("grp:")]
+chains=[o["tag"] for o in obs if o.get("tag","").startswith("chain:") and ":h" not in o["tag"]]
 eps=[e["tag"] for e in cfg.get("endpoints",[])]
-counts={o["tag"]:len(o.get("outbounds",[])) for o in cfg.get("outbounds",[]) if o.get("tag","").startswith("sub:")}
+counts={t:len(by[t].get("outbounds",[])) for t in subs}
+def delay(t):
+    h=prox.get(t,{}).get("history",[]); return h[-1]["delay"] if h else 0
+delays={t:delay(t) for t in subs+grps+chains}; delays[now]=delay(now)
+def path(tag):
+    seq=[]; seen=set(); cur=tag
+    while cur and cur not in seen:
+        seen.add(cur); seq.append(cur); cur=by.get(cur,{}).get("detour")
+    seq.reverse(); return seq
 statics=[]
 d="$STATIC"
 if os.path.isdir(d):
     for f in sorted(os.listdir(d)):
-        if f.endswith(".json"):
-            try: statics.append({"file":f,"tag":json.load(open(d+"/"+f)).get("tag",f[:-5]),"type":json.load(open(d+"/"+f)).get("type","")})
-            except: statics.append({"file":f,"tag":f[:-5],"type":"?"})
-print(json.dumps({"running":up=="1","active":now,"subs":subs,"endpoints":eps,"counts":counts,"statics":statics}))
+        if not f.endswith(".json"): continue
+        try:
+            o=json.load(open(d+"/"+f)); statics.append({"tag":o.get("tag",f[:-5]),"type":o.get("type","")})
+        except: statics.append({"tag":f[:-5],"type":"?"})
+print(json.dumps({"running":up,"active":now,"version":ver,
+    "subs":subs,"groups":grps,"chains":chains,"endpoints":eps,
+    "counts":counts,"delays":delays,"path":path(now),"statics":statics,
+    "secret":os.environ.get("SECRET",""),
+    "clash_port":os.environ.get("CTRL","0.0.0.0:9090").split(":")[-1],
+    "socks_port":os.environ.get("PORT","7890")}))
 PY
+}
+conntest() { # {"ip","ms"} through the proxy
+    local p; p=$(uci -q get oxid.main.socks_port || echo 7890)
+    local r ip t; r=$(curl -m15 -sS -w '\n%{time_total}' --socks5-hostname "127.0.0.1:$p" https://api.ipify.org 2>/dev/null)
+    ip=$(printf '%s' "$r" | head -1); t=$(printf '%s' "$r" | tail -1)
+    [ -n "$ip" ] && [ "$ip" != "$t" ] && echo "{\"ip\":\"$ip\",\"ms\":$(awk "BEGIN{printf \"%d\",$t*1000}")}" || echo '{"ip":"","ms":0}'
 }
 case "$1" in
     stage)   [ "$(uci -q get oxid.main.hourly)" = "0" ] && { echo "hourly disabled"; exit 0; }; stage ;;
@@ -100,6 +131,7 @@ case "$1" in
     switch)  switch "$2" ;;
     watchdog) watchdog ;;
     status)  status ;;
+    test)    conntest ;;
     self-update)        "$ETC/oxid-update.sh" ;;          # update panel from GitHub, no core restart
     self-update-apply)  "$ETC/oxid-update.sh" --apply ;;  # update + restart core (the button's arrow)
     static-del)  rm -f "$STATIC/$2.json" && stage; echo "deleted $2" ;;

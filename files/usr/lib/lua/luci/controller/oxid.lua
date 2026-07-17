@@ -9,7 +9,7 @@ function index()
 	entry({"admin","services","oxid"},
 		alias("admin","services","oxid","control"), _("OXID"), 45).dependent = true
 	entry({"admin","services","oxid","control"},
-		template("oxid/control"), _("Control"), 1).leaf = true
+		template("oxid/control"), _("Dashboard"), 1).leaf = true
 	entry({"admin","services","oxid","settings"},
 		cbi("oxid/settings"), _("Settings & Subscriptions"), 2).leaf = true
 	entry({"admin","services","oxid","status"}, call("act_status")).leaf = true
@@ -34,6 +34,8 @@ function act_do()
 		out = util.exec(CTL .. " stage!")
 	elseif a == "restart" then
 		out = util.exec(CTL .. " restart")
+	elseif a == "test" then
+		out = util.exec(CTL .. " test")
 	elseif a == "self-update" then
 		-- run detached: self-update reinstalls this very controller mid-request
 		util.exec("(" .. CTL .. " self-update) >/tmp/oxid/update.log 2>&1 &")

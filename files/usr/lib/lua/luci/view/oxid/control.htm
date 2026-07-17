@@ -1,167 +1,314 @@
 <%+header%>
-
 <style>
-.sbx-grid{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px}
-.sbx-card{flex:1 1 320px;border:1px solid rgba(128,128,128,.25);border-radius:8px;padding:14px 16px;background:rgba(128,128,128,.04)}
-.sbx-card h3{margin:0 0 10px;font-size:15px}
-.sbx-badge{display:inline-block;padding:2px 9px;border-radius:12px;font-size:12px;font-weight:600}
-.sbx-up{background:#1f8f4e;color:#fff}.sbx-down{background:#c0392b;color:#fff}
-.sbx-active{font-size:20px;font-weight:700;word-break:break-all;margin:6px 0}
-.sbx-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
-.sbx-btn{cursor:pointer}
-.sbx-table{width:100%;border-collapse:collapse;font-size:13px}
-.sbx-table td,.sbx-table th{padding:4px 6px;border-bottom:1px solid rgba(128,128,128,.15);text-align:left}
-.sbx-muted{opacity:.65;font-size:12px}
-.sbx-split{display:inline-flex;align-items:stretch}
-.sbx-split .sbx-btn{margin:0}
-.sbx-split .sbx-arrow{border-left:1px solid rgba(255,255,255,.35);padding:0 9px;font-size:11px}
-textarea.sbx-ta{width:100%;min-height:120px;font-family:monospace;font-size:12px}
-#sbx-msg{margin:8px 0;font-size:13px;min-height:18px}
+@font-face{
+  font-family:'OXID Wordmark';
+  src:url(data:font/woff2;base64,d09GMgABAAAAAAKYAAwAAAAABPgAAAJJAAQBBgAAAAAAAAAAAAAAAAAAAAAAAAAAGyAcMAZgAEwKgXiBYQE2AiQDFAsMAAQgBYJ6ByAbBATInoNNWZ4VwVN10sW1v2t1rSIevt+vnfv+W9GEWWbIDFm8upWA1yU0IiV6qZY6a8C4vLcHJVslrZJKbKpCXgQ39z9Ab22f76YWlXjvmBL57+iwgUcBnjVsTApx4fZeYAFt7XnqphARHwMbOQYLRbbSy8fNAnUjVBDm3X1DQZehK5BpU/SRRPF5WrkxVCglhdVkw7mwwTcKqUOMBKzxrXEI43AFKAAIAFhZdw/ACuZFZoX/Nqm5gFgCCEgjxCXABDISCvQgCfQgmwF1VUkyz0uAyK7wYdysCQMRAAAlUEcZs+AKQAYkIYkag8zns18u8XDBrFNYN9eExytmncxKIDMpD1dXhMfra9bT5R86XjrRWMeIWJewrqKY0ZHMmGhWVAxrfXlxuqdHNVOzK7ODg6PDTU1aMtTZ0InMrxXxCiYrNdFh7ZmZwlNNSrIrQlAdHFyXkQGgGhmJBSAfnSTYDirIYerRNnzv3QEQyEGtGnlQT+DZvtEL0iPw3dE7BvAnNT/8+/97qO+QiaAigeD8Rt08Ub/mIw7mjVdInwgjp5CDbexTQUDJM9iuUbF1DBXnoJBQsYskMgO8ACZhQBtJ2l5JYdpOPuekpO5/XdlA0DGnQKEqxbJkyFRKjTFDdakJlSmNmkBioPF8JRFVUMiWJgU7OSlTKlOB4oxp2lGqFGDQmgEDGbLS7jLJ9KUokMdgNdIZFPOlKlaFkD3lWnt5qEwbwfhvGcrkSlLMSyh3AWyolen3B1P6DBkylcxSCKkrejbJpdddxgAAAA==) format('woff2');
+  font-weight:100;font-display:swap;
+}
+.oxid-app{
+  --bg:oklch(0.165 0.006 55);--surface:oklch(0.205 0.008 55);--surface-2:oklch(0.245 0.010 55);
+  --line:oklch(1 0 0 / 0.09);--line-strong:oklch(1 0 0 / 0.15);
+  --ink:oklch(0.96 0.004 75);--muted:oklch(0.74 0.012 65);--faint:oklch(0.60 0.010 65);
+  --ember:oklch(0.705 0.165 48);--ember-ink:oklch(0.20 0.05 48);--ember-soft:oklch(0.705 0.165 48 / 0.13);
+  --up:oklch(0.78 0.15 155);--down:oklch(0.72 0.15 235);--bad:oklch(0.66 0.19 25);
+  --r:14px;--r-sm:10px;--ease:cubic-bezier(.22,1,.36,1);
+  color-scheme:dark;background:
+    radial-gradient(120% 90% at 92% -10%, oklch(0.705 0.165 48 / 0.10), transparent 55%),
+    radial-gradient(90% 70% at -10% 0%, oklch(0.55 0.09 260 / 0.08), transparent 50%),
+    var(--bg);
+  color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  letter-spacing:-0.006em;border-radius:var(--r);padding:clamp(16px,2.4vw,26px);margin:-4px 0 0;
+}
+.oxid-app *{box-sizing:border-box}
+.oxid-app .top{display:flex;align-items:center;gap:16px;margin-bottom:18px;flex-wrap:wrap}
+.oxid-app .brand{display:flex;align-items:baseline;gap:12px;line-height:1}
+.oxid-app .wordmark{font-family:'OXID Wordmark',system-ui;font-weight:100;font-size:38px;letter-spacing:0.16em;padding-left:0.16em;color:var(--ink)}
+.oxid-app .tagline{color:var(--faint);font-size:12.5px;white-space:nowrap}
+.oxid-app .spacer{flex:1}
+.oxid-app .pill{display:inline-flex;align-items:center;gap:8px;padding:7px 13px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:13px;font-weight:500}
+.oxid-app .dot{width:8px;height:8px;border-radius:50%;background:var(--faint)}
+.oxid-app .pill.on .dot{background:var(--up);animation:oxpulse 2.4s var(--ease) infinite}
+.oxid-app .pill.off .dot{background:var(--bad)}
+@keyframes oxpulse{0%{box-shadow:0 0 0 0 oklch(0.78 0.15 155 / .5)}70%{box-shadow:0 0 0 7px oklch(0.78 0.15 155 / 0)}100%{box-shadow:0 0 0 0 oklch(0.78 0.15 155 / 0)}}
+.oxid-app .grid{display:grid;grid-template-columns:1.35fr 1fr;gap:16px}
+@media(max-width:820px){.oxid-app .grid{grid-template-columns:1fr}}
+.oxid-app .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+.oxid-app .card h2{font-size:12px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:var(--faint);margin:0 0 14px}
+.oxid-app .hero{grid-column:1 / -1;display:grid;grid-template-columns:1.35fr 1fr;gap:24px;align-items:center}
+@media(max-width:820px){.oxid-app .hero{grid-template-columns:1fr;gap:18px}}
+.oxid-app .state-lead{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;margin-bottom:10px;color:var(--up)}
+.oxid-app .state-lead.off{color:var(--bad)}
+.oxid-app .state-lead svg{width:15px;height:15px}
+.oxid-app .exit{font-size:clamp(24px,3.2vw,32px);font-weight:680;letter-spacing:-0.02em;line-height:1.05;text-wrap:balance}
+.oxid-app .exit .via{color:var(--muted);font-weight:500}
+.oxid-app .meta{display:flex;gap:22px;margin-top:14px;flex-wrap:wrap}
+.oxid-app .meta div{display:flex;flex-direction:column;gap:2px}
+.oxid-app .meta .k{font-size:11.5px;color:var(--faint)}
+.oxid-app .meta .v{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+.oxid-app .chip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:12.5px;font-weight:600;background:var(--ember-soft);color:var(--ember);border:1px solid oklch(0.705 0.165 48 / 0.28)}
+.oxid-app .path{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:18px}
+.oxid-app .hop{padding:8px 12px;border-radius:var(--r-sm);background:var(--surface-2);border:1px solid var(--line);font-size:13px;font-weight:600;white-space:nowrap}
+.oxid-app .hop.exit-hop{background:var(--ember-soft);border-color:oklch(0.705 0.165 48 / 0.3);color:var(--ember)}
+.oxid-app .hop small{display:block;font-size:10.5px;color:var(--faint);font-weight:500;margin-top:1px}
+.oxid-app .hop.exit-hop small{color:oklch(0.705 0.165 48 / 0.8)}
+.oxid-app .arr{color:var(--faint);flex:0 0 auto}
+.oxid-app .throughput{display:flex;gap:26px;align-items:flex-end}
+.oxid-app .rate{display:flex;flex-direction:column;gap:3px}
+.oxid-app .rate .lbl{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.oxid-app .rate .num{font-size:22px;font-weight:680;font-variant-numeric:tabular-nums;letter-spacing:-0.02em}
+.oxid-app .rate .num span{font-size:12px;color:var(--faint);font-weight:600;margin-left:3px}
+.oxid-app .tri{width:0;height:0;border-style:solid}
+.oxid-app .tri.u{border-width:0 5px 8px 5px;border-color:transparent transparent var(--up) transparent}
+.oxid-app .tri.d{border-width:8px 5px 0 5px;border-color:var(--down) transparent transparent transparent}
+.oxid-app .spark{width:100%;height:44px;margin-top:14px;overflow:visible}
+.oxid-app .seg{display:flex;flex-wrap:wrap;gap:7px}
+.oxid-app .seg button{appearance:none;cursor:pointer;font:inherit;font-size:13px;font-weight:600;padding:8px 13px;border-radius:999px;background:var(--surface-2);color:var(--muted);border:1px solid var(--line);transition:all .16s var(--ease)}
+.oxid-app .seg button:hover{color:var(--ink);border-color:var(--line-strong)}
+.oxid-app .seg button[aria-pressed=true]{background:var(--ember);color:var(--ember-ink);border-color:transparent}
+.oxid-app .seg button:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
+.oxid-app .pool{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.oxid-app .pool:last-child{border-bottom:0}
+.oxid-app .pool .nm{font-weight:600;font-size:14px;min-width:60px}
+.oxid-app .pool .cnt{font-size:12.5px;color:var(--faint);min-width:58px;font-variant-numeric:tabular-nums}
+.oxid-app .bar{flex:1;height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden}
+.oxid-app .bar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--up),oklch(0.8 0.14 130))}
+.oxid-app .bar.mid i{background:linear-gradient(90deg,oklch(0.82 0.15 90),var(--ember))}
+.oxid-app .bar.hi i{background:linear-gradient(90deg,var(--ember),var(--bad))}
+.oxid-app .ms{font-size:12px;color:var(--muted);min-width:52px;text-align:right;font-variant-numeric:tabular-nums}
+.oxid-app .actions{grid-column:1 / -1;display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.oxid-app .btn{appearance:none;cursor:pointer;font:inherit;font-size:13.5px;font-weight:600;padding:9px 15px;border-radius:var(--r-sm);background:var(--surface-2);color:var(--ink);border:1px solid var(--line-strong);transition:all .16s var(--ease);display:inline-flex;align-items:center;gap:7px;text-decoration:none}
+.oxid-app .btn:hover{border-color:var(--faint);transform:translateY(-1px)}
+.oxid-app .btn:active{transform:translateY(0)}
+.oxid-app .btn:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
+.oxid-app .btn[disabled]{opacity:.5;cursor:default;transform:none}
+.oxid-app .btn.ghost{background:transparent}
+.oxid-app .btn small{color:var(--faint);font-weight:500}
+.oxid-app .split{display:inline-flex}
+.oxid-app .split .btn{border-radius:var(--r-sm) 0 0 var(--r-sm)}
+.oxid-app .split .arrow{border-radius:0 var(--r-sm) var(--r-sm) 0;border-left:1px solid var(--ember-ink);padding:9px 11px}
+.oxid-app .btn.primary{background:var(--ember);color:var(--ember-ink);border-color:transparent}
+.oxid-app .btn.primary:hover{background:oklch(0.74 0.17 48)}
+.oxid-app #ox-msg{min-height:18px;font-size:13px;color:var(--muted);margin:14px 2px 0}
+.oxid-app #ox-msg.err{color:var(--bad)}
+.oxid-app .foot{display:flex;gap:20px;flex-wrap:wrap;color:var(--faint);font-size:12.5px;margin-top:16px;padding:0 2px}
+.oxid-app .foot code{font-family:ui-monospace,Menlo,monospace;color:var(--muted);font-size:12px}
+.oxid-app .foot a{color:var(--muted);text-decoration:none;border-bottom:1px solid var(--line-strong)}
+.oxid-app .foot a:hover{color:var(--ember)}
+@media(prefers-reduced-motion:reduce){.oxid-app *{animation:none!important;transition:none!important}}
 </style>
 
-<h2>OXID — Control</h2>
-<div id="sbx-msg" class="sbx-muted"></div>
+<div class="oxid-app">
+  <header class="top">
+    <div class="brand"><span class="wordmark">OXID</span><span class="tagline">OpenWRT v2ray, polished</span></div>
+    <span class="spacer"></span>
+    <span class="pill off" id="ox-pill"><span class="dot"></span><span id="ox-pill-t">…</span></span>
+  </header>
 
-<div class="sbx-grid">
-  <div class="sbx-card">
-    <h3>Status</h3>
-    <div>Service: <span id="sbx-run" class="sbx-badge sbx-down">…</span></div>
-    <div class="sbx-muted" style="margin-top:8px">Active config (main)</div>
-    <div id="sbx-active" class="sbx-active">…</div>
-    <div class="sbx-row">
-      <button class="cbi-button cbi-button-apply sbx-btn" onclick="sbxDo('stage','',this)">Refresh now (no reconnect)</button>
-      <button class="cbi-button cbi-button-reload sbx-btn" onclick="sbxDo('apply','',this)">Apply (reload core)</button>
-      <button class="cbi-button cbi-button-reset sbx-btn" onclick="sbxDo('restart','',this)">Restart</button>
-      <a id="sbx-dash" class="cbi-button cbi-button-action" target="_blank">Open dashboard ↗</a>
-      <span class="sbx-split" title="Update OXID from GitHub, through the proxy">
-        <button class="cbi-button cbi-button-positive sbx-btn" onclick="sbxUpdate(false,this)">⟳ Update</button>
-        <button class="cbi-button cbi-button-positive sbx-btn sbx-arrow" onclick="sbxUpdate(true,this)"
-                title="Update &amp; apply (also reloads the core)">▸</button>
+  <div class="grid">
+    <section class="card hero">
+      <div>
+        <div class="state-lead" id="ox-lead">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+          <span id="ox-lead-t">CHECKING…</span>
+        </div>
+        <div class="exit"><span id="ox-exit">…</span> <span class="via">· main exit</span></div>
+        <div class="meta">
+          <div><span class="k">Exit IP</span><span class="v" id="ox-ip">—</span></div>
+          <div><span class="k">Latency</span><span class="v" id="ox-lat">—</span></div>
+          <div><span class="k">Protocol</span><span class="chip" id="ox-proto">—</span></div>
+        </div>
+        <div class="path" id="ox-path"></div>
+      </div>
+      <div>
+        <div class="throughput">
+          <div class="rate"><span class="lbl"><span class="tri d"></span>Download</span><span class="num" id="ox-dl">0<span>MB/s</span></span></div>
+          <div class="rate"><span class="lbl"><span class="tri u"></span>Upload</span><span class="num" id="ox-ul">0<span>MB/s</span></span></div>
+        </div>
+        <svg class="spark" id="ox-spark" viewBox="0 0 300 44" preserveAspectRatio="none">
+          <polyline id="ox-l1" fill="none" stroke="var(--down)" stroke-width="2" stroke-linejoin="round" points=""/>
+          <polyline id="ox-l2" fill="none" stroke="var(--up)" stroke-width="1.5" stroke-opacity="0.6" points=""/>
+        </svg>
+        <button class="btn ghost" style="margin-top:14px" id="ox-test">↻ Test connection</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Active config</h2>
+      <div class="seg" id="ox-seg"></div>
+      <p style="color:var(--faint);font-size:12.5px;margin-top:12px">Switches instantly — the core keeps running, live connections preserved.</p>
+    </section>
+
+    <section class="card">
+      <h2>Subscription pools</h2>
+      <div id="ox-pools"></div>
+    </section>
+
+    <section class="actions">
+      <button class="btn" data-act="stage">↻ Refresh <small>no reconnect</small></button>
+      <button class="btn" data-act="apply">▲ Apply</button>
+      <button class="btn ghost" data-act="restart">⟳ Restart</button>
+      <span class="spacer"></span>
+      <a class="btn ghost" id="ox-dash" target="_blank" rel="noopener">Dashboard ↗</a>
+      <span class="split">
+        <button class="btn primary" id="ox-upd">⟳ Update</button>
+        <button class="btn primary arrow" id="ox-upd-apply" title="Update &amp; apply (reloads core)">▸</button>
       </span>
-    </div>
+    </section>
   </div>
 
-  <div class="sbx-card">
-    <h3>Switch active config (graceful)</h3>
-    <div class="sbx-muted">Instant, keeps the core running.</div>
-    <div class="sbx-row">
-      <select id="sbx-sel" style="min-width:180px"></select>
-      <button class="cbi-button cbi-button-apply sbx-btn" onclick="sbxSwitch()">Switch</button>
-    </div>
-    <h3 style="margin-top:16px">Subscription pools</h3>
-    <table class="sbx-table"><tbody id="sbx-subs"></tbody></table>
+  <div id="ox-msg"></div>
+
+  <div class="foot">
+    <span>SOCKS <code id="ox-socks">127.0.0.1:7890</code></span>
+    <span>Clash API <code id="ox-clash">:9090</code></span>
+    <span>Core <code id="ox-ver">sing-box-awg</code></span>
+    <span><a href="https://github.com/iWebbIO/oxid-ui" target="_blank" rel="noopener">github.com/iWebbIO/oxid-ui</a></span>
   </div>
 </div>
 
-<div class="sbx-grid">
-  <div class="sbx-card">
-    <h3>Static nodes</h3>
-    <table class="sbx-table"><tbody id="sbx-statics"></tbody></table>
-    <div class="sbx-muted" style="margin-top:6px">Static nodes always work, even with GitHub down.</div>
-  </div>
+<script type="text/javascript">//<![CDATA[
+var OX_STATUS='<%=url("admin","services","oxid","status")%>';
+var OX_DO='<%=url("admin","services","oxid","do")%>';
+var OX_TOKEN='<%=token%>';
+var S={}, ws=null;
 
-  <div class="sbx-card">
-    <h3>Add AmneziaWG</h3>
-    <div class="sbx-row"><input id="sbx-awg-name" placeholder="node name (e.g. amnezia2)" style="min-width:200px"></div>
-    <textarea id="sbx-awg-body" class="sbx-ta" placeholder="Paste your AmneziaWG / WireGuard [Interface]…[Peer] config here"></textarea>
-    <div class="sbx-row"><button class="cbi-button cbi-button-add sbx-btn" onclick="sbxImport('awg-import','sbx-awg-name','sbx-awg-body')">Import AmneziaWG</button></div>
-  </div>
+function el(id){return document.getElementById(id);}
+function msg(t,e){var m=el('ox-msg');m.textContent=t||'';m.className=e?'err':'';}
+function post(p){p.token=OX_TOKEN;
+  var b=Object.keys(p).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(p[k]);}).join('&');
+  return fetch(OX_DO,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:b,credentials:'same-origin'}).then(function(r){return r.json();});}
 
-  <div class="sbx-card">
-    <h3>Add static node (raw sing-box JSON)</h3>
-    <div class="sbx-row"><input id="sbx-raw-name" placeholder="node name" style="min-width:200px"></div>
-    <textarea id="sbx-raw-body" class="sbx-ta" placeholder='One sing-box outbound OR endpoint object with a "tag" and "type", e.g. {"type":"vless","tag":"my-node",...}'></textarea>
-    <div class="sbx-row"><button class="cbi-button cbi-button-add sbx-btn" onclick="sbxImport('static-add','sbx-raw-name','sbx-raw-body')">Add node</button></div>
-  </div>
-</div>
+function pretty(tag){
+  if(!tag) return '(none)';
+  if(tag==='direct') return 'Direct';
+  if(tag.indexOf('sub:')===0) return tag.slice(4)+' (balanced)';
+  if(tag.indexOf('grp:')===0) return tag.slice(4);
+  if(tag.indexOf('chain:')===0) return tag.slice(6);
+  if(tag.indexOf('node:')===0) return tag.slice(5);
+  if(tag==='amnezia') return 'AmneziaWG';
+  return tag;
+}
+function hopLabel(tag){
+  if(tag.indexOf('sub:')===0) return ['balanced','subscription'];
+  if(tag.indexOf('chain:')===0) return ['chain',''];
+  if(tag.indexOf('node:')===0) return [tag.slice(5),'exit node'];
+  if((S.endpoints||[]).indexOf(tag)>=0) return [pretty(tag),'tunnel'];
+  return [pretty(tag),''];
+}
+function fmtMs(ms){return ms>0?ms+' ms':'—';}
+function barClass(ms){return ms<=0?'':ms<80?'':ms<140?'mid':'hi';}
+function barPct(ms){return ms<=0?4:Math.max(6,Math.min(100,Math.round(100-(ms/260*100))));}
 
-<script type="text/javascript">
-var SBX_STATUS = '<%=url("admin","services","oxid","status")%>';
-var SBX_DO     = '<%=url("admin","services","oxid","do")%>';
-var SBX_TOKEN  = '<%=token%>';
-
-function sbxMsg(t, err){ var e=document.getElementById('sbx-msg'); e.textContent=t||''; e.style.color=err?'#c0392b':''; }
-
-function sbxPost(params){
-  params.token = SBX_TOKEN;
-  var body = Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
-  return fetch(SBX_DO, {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:body, credentials:'same-origin'})
-    .then(function(r){return r.json();});
+function render(){
+  var run=S.running;
+  el('ox-pill').className='pill '+(run?'on':'off');
+  el('ox-pill-t').textContent=run?'Connected':'Stopped';
+  el('ox-lead').className='state-lead'+(run?'':' off');
+  el('ox-lead-t').textContent=run?'SECURE · TRAFFIC ENCRYPTED':'CORE STOPPED';
+  el('ox-exit').textContent=pretty(S.active);
+  var d=(S.delays||{})[S.active]||0; el('ox-lat').textContent=fmtMs(d);
+  // protocol chip from active kind
+  var proto='PROXY';
+  if((S.endpoints||[]).indexOf(S.active)>=0) proto='AmneziaWG';
+  else if(S.active&&S.active.indexOf('sub:')===0) proto='balanced';
+  else if(S.active&&S.active.indexOf('chain:')===0) proto='chain';
+  else if(S.active==='direct') proto='direct';
+  el('ox-proto').textContent=proto;
+  // path diagram
+  var p=el('ox-path'); p.innerHTML='';
+  function hop(txt,sub,exit){var s=document.createElement('span');s.className='hop'+(exit?' exit-hop':'');s.innerHTML=txt+(sub?'<small>'+sub+'</small>':'');return s;}
+  function arrow(){var a=document.createElement('span');a.className='arr';a.textContent='→';return a;}
+  p.appendChild(hop('You','LAN → passwall2',false));
+  var hops=(S.path&&S.path.length)?S.path:[S.active];
+  p.appendChild(arrow()); p.appendChild(hop('PROXY','selector',false));
+  hops.forEach(function(t,i){var l=hopLabel(t);p.appendChild(arrow());p.appendChild(hop(l[0],l[1],i===hops.length-1));});
+  p.appendChild(arrow()); p.appendChild(hop('Internet',S.ip||'',false));
+  // switch segments
+  var seg=el('ox-seg'); seg.innerHTML='';
+  var opts=[];
+  (S.endpoints||[]).forEach(function(t){opts.push([t,pretty(t)]);});
+  (S.chains||[]).forEach(function(t){opts.push([t,pretty(t)]);});
+  (S.groups||[]).forEach(function(t){opts.push([t,pretty(t)]);});
+  (S.subs||[]).forEach(function(t){opts.push([t,t.slice(4)]);});
+  opts.push(['direct','direct']);
+  opts.forEach(function(o){var b=document.createElement('button');b.textContent=o[1];
+    b.setAttribute('aria-pressed', String(o[0]===S.active));
+    b.onclick=function(){switchTo(o[0]);};seg.appendChild(b);});
+  // pools
+  var pl=el('ox-pools'); pl.innerHTML='';
+  (S.subs||[]).forEach(function(t){
+    var nm=t.slice(4), c=(S.counts||{})[t]||0, ms=(S.delays||{})[t]||0;
+    var row=document.createElement('div');row.className='pool';
+    row.innerHTML='<span class="nm">'+nm+'</span><span class="cnt">'+c+' nodes</span>'+
+      '<span class="bar '+barClass(ms)+'"><i style="width:'+barPct(ms)+'%"></i></span>'+
+      '<span class="ms">'+fmtMs(ms)+'</span>';
+    pl.appendChild(row);
+  });
+  var ver=(S.version||'').replace('sing-box','').replace('unknown','').trim();
+  el('ox-ver').textContent='sing-box-awg'+(ver?' '+ver:'')+' · AWG 2.0';
+  el('ox-socks').textContent='127.0.0.1:'+(S.socks_port||'7890');
+  el('ox-clash').textContent=':'+(S.clash_port||'9090');
+  el('ox-dash').href='http://'+location.hostname+':'+(S.clash_port||'9090')+'/ui/';
 }
 
-function sbxDo(act, arg, btn){
-  if(btn){btn.disabled=true;} sbxMsg('Running '+act+'…');
-  sbxPost({act:act, arg:arg||''}).then(function(j){
-    sbxMsg((j.out||act).trim()); if(btn){btn.disabled=false;} setTimeout(sbxRefresh, 1200);
-  }).catch(function(e){ sbxMsg('Error: '+e, true); if(btn){btn.disabled=false;} });
+function loadStatus(){
+  return fetch(OX_STATUS,{credentials:'same-origin'}).then(function(r){return r.json();}).then(function(s){
+    S=s||{}; render(); connectTraffic();
+  }).catch(function(e){msg('status error: '+e,true);});
 }
 
-function sbxSwitch(){
-  var v=document.getElementById('sbx-sel').value; if(!v) return;
-  sbxDo('switch', v, null);
+function switchTo(tag){
+  msg('Switching to '+pretty(tag)+'…');
+  post({act:'switch',arg:tag}).then(function(j){msg((j.out||'').trim());setTimeout(loadStatus,700);});
 }
 
-function sbxUpdate(apply, btn){
-  var q = apply ? 'Update OXID from GitHub and reload the core (brief reconnect)?'
-                : 'Update the OXID panel from GitHub? (no reconnect)';
-  if(!confirm(q)) return;
-  if(btn){ btn.disabled=true; }
-  sbxMsg('Updating from GitHub via the proxy…');
-  sbxPost({act: apply?'self-update-apply':'self-update', arg:''}).then(function(j){
-    sbxMsg((j.out||'update started').trim());
-    // install.sh restarts rpcd/uhttpd at the end -> reload to pick up the new panel
-    setTimeout(function(){ location.reload(); }, apply ? 16000 : 12000);
-  }).catch(function(e){ sbxMsg('Error: '+e, true); if(btn){ btn.disabled=false; } });
+function doAct(act,btn){
+  if(btn){btn.disabled=true;} msg('Running '+act+'…');
+  post({act:act,arg:''}).then(function(j){msg((j.out||act).trim());if(btn){btn.disabled=false;}setTimeout(loadStatus,1200);})
+    .catch(function(e){msg('Error: '+e,true);if(btn){btn.disabled=false;}});
 }
 
-function sbxImport(act, nameId, bodyId){
-  var name=document.getElementById(nameId).value.trim().replace(/[^A-Za-z0-9_.-]/g,'');
-  var body=document.getElementById(bodyId).value;
-  if(!name){ sbxMsg('Enter a node name', true); return; }
-  if(!body.trim()){ sbxMsg('Paste the config', true); return; }
-  sbxMsg('Importing '+name+'…');
-  sbxPost({act:act, arg:name, body:body}).then(function(j){
-    sbxMsg((j.out||'done').trim(), /ERR/i.test(j.out||'')); document.getElementById(bodyId).value=''; setTimeout(sbxRefresh, 1000);
-  }).catch(function(e){ sbxMsg('Error: '+e, true); });
+function runTest(){
+  var b=el('ox-test'); b.disabled=true; b.textContent='Testing…';
+  post({act:'test'}).then(function(j){
+    var r={}; try{r=JSON.parse(j.out);}catch(e){}
+    b.disabled=false; b.textContent='↻ Test connection';
+    if(r.ip){ el('ox-ip').textContent=r.ip; if(r.ms) el('ox-lat').textContent=r.ms+' ms'; S.ip=r.ip; render(); msg('Exit '+r.ip+' · '+r.ms+' ms'); }
+    else { msg('Test failed — the active config may be down',true); }
+  }).catch(function(e){b.disabled=false;b.textContent='↻ Test connection';msg('Test error: '+e,true);});
 }
 
-function sbxDelStatic(name){
-  if(!confirm('Delete static node "'+name+'"?')) return;
-  sbxDo('static-del', name, null);
+// live throughput via clash-api /traffic websocket (degrades gracefully)
+var N=48, dl=[], ul=[], reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+for(var i=0;i<N;i++){dl.push(0);ul.push(0);}
+function pts(a,max){var m=Math.max(max,0.001);return a.map(function(v,i){return (i/(N-1)*300).toFixed(1)+','+(44-(v/m)*40).toFixed(1);}).join(' ');}
+function drawSpark(){var mx=Math.max.apply(null,dl.concat(ul)).valueOf()||0.001;
+  el('ox-l1').setAttribute('points',pts(dl,mx));el('ox-l2').setAttribute('points',pts(ul,mx));}
+function connectTraffic(){
+  if(ws||!S.secret) return;
+  try{
+    ws=new WebSocket('ws://'+location.hostname+':'+(S.clash_port||'9090')+'/traffic?token='+encodeURIComponent(S.secret));
+    ws.onmessage=function(ev){var t={};try{t=JSON.parse(ev.data);}catch(e){return;}
+      var d=(t.down||0)/1e6, u=(t.up||0)/1e6;
+      dl.push(d);dl.shift();ul.push(u);ul.shift();
+      el('ox-dl').innerHTML=d.toFixed(d<10?2:1)+'<span>MB/s</span>';
+      el('ox-ul').innerHTML=u.toFixed(u<10?2:1)+'<span>MB/s</span>';
+      if(!reduce) drawSpark();
+    };
+    ws.onclose=function(){ws=null;};
+    ws.onerror=function(){try{ws.close();}catch(e){}ws=null;};
+  }catch(e){ws=null;}
 }
 
-function sbxRefresh(){
-  fetch(SBX_STATUS, {credentials:'same-origin'}).then(function(r){return r.json();}).then(function(s){
-    var run=document.getElementById('sbx-run');
-    run.textContent = s.running ? 'running' : 'stopped';
-    run.className = 'sbx-badge ' + (s.running ? 'sbx-up' : 'sbx-down');
-    document.getElementById('sbx-active').textContent = s.active || '(none)';
-    // dashboard link
-    document.getElementById('sbx-dash').href = 'http://' + location.hostname + ':9090/ui/';
-    // selector options: subs + endpoints + direct
-    var sel=document.getElementById('sbx-sel'), cur=sel.value;
-    var opts=[]; (s.subs||[]).forEach(function(t){opts.push([t.replace(/^sub:/,''), t]);});
-    (s.endpoints||[]).forEach(function(t){opts.push([t, 'static: '+t]);});
-    opts.push(['direct','direct']);
-    sel.innerHTML=''; opts.forEach(function(o){var op=document.createElement('option');op.value=o[0];op.textContent=o[1];sel.appendChild(op);});
-    if(cur) sel.value=cur;
-    // sub pools
-    var tb=document.getElementById('sbx-subs'); tb.innerHTML='';
-    (s.subs||[]).forEach(function(t){
-      var n=t.replace(/^sub:/,''); var c=(s.counts&&s.counts[t])||0;
-      tb.innerHTML+='<tr><td>'+n+'</td><td class="sbx-muted">'+c+' nodes</td></tr>';
-    });
-    // statics
-    var st=document.getElementById('sbx-statics'); st.innerHTML='';
-    (s.statics||[]).forEach(function(x){
-      st.innerHTML+='<tr><td><b>'+x.tag+'</b></td><td class="sbx-muted">'+(x.type||'')+'</td>'+
-        '<td style="text-align:right"><button class="cbi-button cbi-button-remove" onclick="sbxDelStatic(\''+x.tag+'\')">Delete</button></td></tr>';
-    });
-  }).catch(function(e){ sbxMsg('status error: '+e, true); });
-}
+// wire
+el('ox-test').onclick=runTest;
+el('ox-upd').onclick=function(){if(!confirm('Update the OXID panel from GitHub? (no reconnect)'))return;
+  msg('Updating from GitHub via the proxy…');post({act:'self-update'}).then(function(j){msg((j.out||'').trim());setTimeout(function(){location.reload();},12000);});};
+el('ox-upd-apply').onclick=function(){if(!confirm('Update from GitHub and reload the core (brief reconnect)?'))return;
+  msg('Updating + applying…');post({act:'self-update-apply'}).then(function(j){msg((j.out||'').trim());setTimeout(function(){location.reload();},16000);});};
+[].forEach.call(document.querySelectorAll('.actions .btn[data-act]'),function(b){b.onclick=function(){doAct(b.getAttribute('data-act'),b);};});
 
-sbxRefresh();
-setInterval(sbxRefresh, 5000);
-</script>
-
+loadStatus().then(function(){setTimeout(runTest,400);});
+setInterval(loadStatus, 7000);
+//]]></script>
 <%+footer%>
