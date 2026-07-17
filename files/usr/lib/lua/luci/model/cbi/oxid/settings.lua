@@ -28,11 +28,12 @@ if nixio.fs.access(sd) then
 	end
 end
 
-local hr = s:option(Flag, "hourly", translate("Hourly graceful refresh"),
-	translate("Re-fetch all subscriptions into RAM every hour WITHOUT restarting the core — no disconnect. " ..
-		"Fresh nodes are staged and load in on the next switch/apply or reboot."))
+local hr = s:option(Flag, "hourly", translate("Auto-refresh subscriptions hourly"),
+	translate("Opt-in. When on, re-fetch all subscriptions into RAM every hour WITHOUT restarting the " ..
+		"core — no disconnect; fresh nodes load on the next switch/apply or reboot. Off by default: leave " ..
+		"it off unless OXID is your day-to-day exit. You can always refresh manually from the Dashboard."))
 hr.rmempty = false
-hr.default = "1"
+hr.default = "0"
 
 local wd = s:option(Flag, "watchdog", translate("Auto-failover watchdog"),
 	translate("Every few minutes, verify the main config works. If it dies, fail over to a healthy " ..

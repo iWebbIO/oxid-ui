@@ -71,7 +71,7 @@ switch() { # switch active outbound live (no restart) + persist to UCI
 }
 status() { # JSON status for the GUI (config + live clash-api data)
     local up=0; pgrep -f "sing-box-awg run -c $CFG" >/dev/null && up=1
-    UP="$up" SECRET="$(secret)" \
+    UP="$up" SECRET="$(secret)" ABARE="$(uci -q get oxid.main.active)" \
     PORT="$(uci -q get oxid.main.socks_port || echo 7890)" \
     CTRL="$(uci -q get oxid.main.controller || echo 0.0.0.0:9090)" \
     PROXIES="$(api GET /proxies 2>/dev/null)" VER="$(api GET /version 2>/dev/null)" \
@@ -89,6 +89,16 @@ try: cfg=json.load(open("$CFG"))
 except: pass
 obs=cfg.get("outbounds",[]); by={o.get("tag"):o for o in obs}
 subs=[o["tag"] for o in obs if o.get("tag","").startswith("sub:")]
+subnames={t[4:] for t in subs}
+def resolve(m):
+    m=(m or "").strip()
+    if m in ("direct","block") or not m: return m
+    if ":" in m:
+        pre,rest=m.split(":",1)
+        return {"sub":"sub:"+rest,"node":"node:"+rest,"group":"grp:"+rest,
+                "chain":"chain:"+rest,"static":rest}.get(pre, m)
+    return ("sub:"+m) if m in subnames else m
+main=resolve(os.environ.get("ABARE",""))
 grps=[o["tag"] for o in obs if o.get("tag","").startswith("grp:")]
 chains=[o["tag"] for o in obs if o.get("tag","").startswith("chain:") and ":h" not in o["tag"]]
 eps=[e["tag"] for e in cfg.get("endpoints",[])]
@@ -109,7 +119,7 @@ if os.path.isdir(d):
         try:
             o=json.load(open(d+"/"+f)); statics.append({"tag":o.get("tag",f[:-5]),"type":o.get("type","")})
         except: statics.append({"tag":f[:-5],"type":"?"})
-print(json.dumps({"running":up,"active":now,"version":ver,
+print(json.dumps({"running":up,"active":now,"main":main,"version":ver,
     "subs":subs,"groups":grps,"chains":chains,"endpoints":eps,
     "counts":counts,"delays":delays,"path":path(now),"statics":statics,
     "secret":os.environ.get("SECRET",""),

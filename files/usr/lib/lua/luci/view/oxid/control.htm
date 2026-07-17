@@ -45,12 +45,23 @@
 .oxid-app .meta div{display:flex;flex-direction:column;gap:2px}
 .oxid-app .meta .k{font-size:11.5px;color:var(--faint)}
 .oxid-app .meta .v{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+/* a value you can click to re-measure */
+.oxid-app .probe{appearance:none;border:0;background:transparent;padding:0;font:inherit;font-size:15px;font-weight:600;
+  font-variant-numeric:tabular-nums;color:var(--ink);cursor:pointer;text-align:left;
+  border-bottom:1px dashed var(--line-strong);transition:color .16s var(--ease),border-color .16s var(--ease)}
+.oxid-app .probe:hover{color:var(--ember);border-color:var(--ember)}
+.oxid-app .probe:focus-visible{outline:2px solid var(--ember);outline-offset:3px;border-radius:2px}
+.oxid-app .probe.busy{color:var(--faint);border-color:var(--line)}
 .oxid-app .chip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:12.5px;font-weight:600;background:var(--ember-soft);color:var(--ember);border:1px solid oklch(0.705 0.165 48 / 0.28)}
 .oxid-app .path{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:18px}
 .oxid-app .hop{padding:8px 12px;border-radius:var(--r-sm);background:var(--surface-2);border:1px solid var(--line);font-size:13px;font-weight:600;white-space:nowrap}
 .oxid-app .hop.exit-hop{background:var(--ember-soft);border-color:oklch(0.705 0.165 48 / 0.3);color:var(--ember)}
 .oxid-app .hop small{display:block;font-size:10.5px;color:var(--faint);font-weight:500;margin-top:1px}
 .oxid-app .hop.exit-hop small{color:oklch(0.705 0.165 48 / 0.8)}
+.oxid-app button.hop{cursor:pointer;font-family:inherit;transition:border-color .16s var(--ease),transform .16s var(--ease)}
+.oxid-app button.hop:hover{border-color:var(--ember);transform:translateY(-1px)}
+.oxid-app button.hop:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
+.oxid-app button.hop.busy{opacity:.6}
 .oxid-app .arr{color:var(--faint);flex:0 0 auto}
 .oxid-app .throughput{display:flex;gap:26px;align-items:flex-end}
 .oxid-app .rate{display:flex;flex-direction:column;gap:3px}
@@ -75,6 +86,7 @@
 .oxid-app .bar.mid i{background:linear-gradient(90deg,oklch(0.82 0.15 90),var(--ember))}
 .oxid-app .bar.hi i{background:linear-gradient(90deg,var(--ember),var(--bad))}
 .oxid-app .ms{font-size:12px;color:var(--muted);min-width:52px;text-align:right;font-variant-numeric:tabular-nums}
+.oxid-app .empty{color:var(--faint);font-size:13px;padding:6px 0}
 .oxid-app .actions{grid-column:1 / -1;display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
 .oxid-app .btn{appearance:none;cursor:pointer;font:inherit;font-size:13.5px;font-weight:600;padding:9px 15px;border-radius:var(--r-sm);background:var(--surface-2);color:var(--ink);border:1px solid var(--line-strong);transition:all .16s var(--ease);display:inline-flex;align-items:center;gap:7px;text-decoration:none}
 .oxid-app .btn:hover{border-color:var(--faint);transform:translateY(-1px)}
@@ -111,10 +123,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
           <span id="ox-lead-t">CHECKING…</span>
         </div>
-        <div class="exit"><span id="ox-exit">…</span> <span class="via">· main exit</span></div>
+        <div class="exit"><span id="ox-exit">…</span> <span class="via" id="ox-via">· exit</span></div>
         <div class="meta">
-          <div><span class="k">Exit IP</span><span class="v" id="ox-ip">—</span></div>
-          <div><span class="k">Latency</span><span class="v" id="ox-lat">—</span></div>
+          <div><span class="k">Exit IP</span><button class="probe" id="ox-ip" type="button" title="Click to re-check the egress IP">—</button></div>
+          <div><span class="k">Latency</span><button class="probe" id="ox-lat" type="button" title="Click to ping the active exit">—</button></div>
           <div><span class="k">Protocol</span><span class="chip" id="ox-proto">—</span></div>
         </div>
         <div class="path" id="ox-path"></div>
@@ -128,7 +140,6 @@
           <polyline id="ox-l1" fill="none" stroke="var(--down)" stroke-width="2" stroke-linejoin="round" points=""/>
           <polyline id="ox-l2" fill="none" stroke="var(--up)" stroke-width="1.5" stroke-opacity="0.6" points=""/>
         </svg>
-        <button class="btn ghost" style="margin-top:14px" id="ox-test">↻ Test connection</button>
       </div>
     </section>
 
@@ -148,7 +159,6 @@
       <button class="btn" data-act="apply">▲ Apply</button>
       <button class="btn ghost" data-act="restart">⟳ Restart</button>
       <span class="spacer"></span>
-      <a class="btn ghost" id="ox-dash" target="_blank" rel="noopener">Dashboard ↗</a>
       <span class="split">
         <button class="btn primary" id="ox-upd">⟳ Update</button>
         <button class="btn primary arrow" id="ox-upd-apply" title="Update &amp; apply (reloads core)">▸</button>
@@ -170,7 +180,7 @@
 var OX_STATUS='<%=url("admin","services","oxid","status")%>';
 var OX_DO='<%=url("admin","services","oxid","do")%>';
 var OX_TOKEN='<%=token%>';
-var S={}, ws=null;
+var S={}, ws=null, probing=false;
 
 function el(id){return document.getElementById(id);}
 function msg(t,e){var m=el('ox-msg');m.textContent=t||'';m.className=e?'err':'';}
@@ -181,19 +191,40 @@ function post(p){p.token=OX_TOKEN;
 function pretty(tag){
   if(!tag) return '(none)';
   if(tag==='direct') return 'Direct';
-  if(tag.indexOf('sub:')===0) return tag.slice(4)+' (balanced)';
+  if(tag.indexOf('sub:')===0) return tag.slice(4);
   if(tag.indexOf('grp:')===0) return tag.slice(4);
   if(tag.indexOf('chain:')===0) return tag.slice(6);
   if(tag.indexOf('node:')===0) return tag.slice(5);
-  if(tag==='amnezia') return 'AmneziaWG';
   return tag;
 }
-function hopLabel(tag){
-  if(tag.indexOf('sub:')===0) return ['balanced','subscription'];
-  if(tag.indexOf('chain:')===0) return ['chain',''];
-  if(tag.indexOf('node:')===0) return [tag.slice(5),'exit node'];
-  if((S.endpoints||[]).indexOf(tag)>=0) return [pretty(tag),'tunnel'];
-  return [pretty(tag),''];
+// resolve a static endpoint/outbound tag -> its declared type
+function staticType(tag){
+  var s=(S.statics||[]).filter(function(x){return x.tag===tag;})[0];
+  return s?s.type:'';
+}
+function protoOf(tag){
+  if(!tag) return '—';
+  if(tag==='direct') return 'Direct';
+  if(tag.indexOf('sub:')===0) return 'Load-balanced';
+  if(tag.indexOf('grp:')===0) return 'Balancer';
+  if(tag.indexOf('chain:')===0) return 'Chain';
+  if(tag.indexOf('node:')===0) return 'Proxy';
+  var t=staticType(tag);
+  if(t==='wireguard') return tag==='amnezia'?'AmneziaWG':'WireGuard';
+  if(t==='tailscale') return 'Tailscale';
+  return t?t:tag;
+}
+// [title, subtitle] for one hop on the routing path, honestly from real data
+function hopLabel(tag,isExit){
+  if(tag.indexOf('sub:')===0){var n=tag.slice(4);var c=(S.counts||{})[tag]||0;return [n, 'balancer · '+c+' nodes'];}
+  if(tag.indexOf('grp:')===0) return [tag.slice(4), 'balancer'];
+  if(/^chain:[^:]+:h\d+$/.test(tag)) return ['hop', 'via chain'];
+  if(tag.indexOf('chain:')===0) return [tag.slice(6), 'chain exit'];
+  if(tag.indexOf('node:')===0) return [tag.slice(5), 'proxy'];
+  var t=staticType(tag);
+  if(t==='wireguard'||t==='tailscale') return [protoOf(tag), 'tunnel'];
+  if(tag==='direct') return ['Direct', 'no proxy'];
+  return [pretty(tag), isExit?'exit':''];
 }
 function fmtMs(ms){return ms>0?ms+' ms':'—';}
 function barClass(ms){return ms<=0?'':ms<80?'':ms<140?'mid':'hi';}
@@ -206,23 +237,27 @@ function render(){
   el('ox-lead').className='state-lead'+(run?'':' off');
   el('ox-lead-t').textContent=run?'SECURE · TRAFFIC ENCRYPTED':'CORE STOPPED';
   el('ox-exit').textContent=pretty(S.active);
-  var d=(S.delays||{})[S.active]||0; el('ox-lat').textContent=fmtMs(d);
-  // protocol chip from active kind
-  var proto='PROXY';
-  if((S.endpoints||[]).indexOf(S.active)>=0) proto='AmneziaWG';
-  else if(S.active&&S.active.indexOf('sub:')===0) proto='balanced';
-  else if(S.active&&S.active.indexOf('chain:')===0) proto='chain';
-  else if(S.active==='direct') proto='direct';
-  el('ox-proto').textContent=proto;
-  // path diagram
+  // main vs. watchdog failover — real, from UCI main
+  var isMain=S.active&&S.main&&S.active===S.main;
+  el('ox-via').textContent=isMain?'· main exit':(S.main?'· failover':'· exit');
+  el('ox-via').style.color=isMain?'':'var(--ember)';
+  if(!probing){var d=(S.delays||{})[S.active]||0; el('ox-lat').textContent=fmtMs(d);}
+  el('ox-ip').textContent=S.ip||'tap to check';
+  el('ox-proto').textContent=protoOf(S.active);
+  // path diagram — built from the REAL detour chain, no invented selector hop
   var p=el('ox-path'); p.innerHTML='';
   function hop(txt,sub,exit){var s=document.createElement('span');s.className='hop'+(exit?' exit-hop':'');s.innerHTML=txt+(sub?'<small>'+sub+'</small>':'');return s;}
   function arrow(){var a=document.createElement('span');a.className='arr';a.textContent='→';return a;}
   p.appendChild(hop('You','LAN → passwall2',false));
   var hops=(S.path&&S.path.length)?S.path:[S.active];
-  p.appendChild(arrow()); p.appendChild(hop('PROXY','selector',false));
-  hops.forEach(function(t,i){var l=hopLabel(t);p.appendChild(arrow());p.appendChild(hop(l[0],l[1],i===hops.length-1));});
-  p.appendChild(arrow()); p.appendChild(hop('Internet',S.ip||'',false));
+  hops.forEach(function(t,i){var l=hopLabel(t,i===hops.length-1);p.appendChild(arrow());p.appendChild(hop(l[0],l[1],i===hops.length-1));});
+  // Internet node — click to re-check the egress IP
+  p.appendChild(arrow());
+  var net=document.createElement('button');net.type='button';net.className='hop';net.id='ox-net';
+  net.title='Click to check your egress IP';
+  net.innerHTML='Internet'+(S.ip?'<small>'+S.ip+'</small>':'<small>tap to check</small>');
+  net.onclick=function(){probe('ip');};
+  p.appendChild(net);
   // switch segments
   var seg=el('ox-seg'); seg.innerHTML='';
   var opts=[];
@@ -236,7 +271,9 @@ function render(){
     b.onclick=function(){switchTo(o[0]);};seg.appendChild(b);});
   // pools
   var pl=el('ox-pools'); pl.innerHTML='';
-  (S.subs||[]).forEach(function(t){
+  var subs=S.subs||[];
+  if(!subs.length){pl.innerHTML='<div class="empty">No subscriptions — add one on the Manage tab.</div>';}
+  subs.forEach(function(t){
     var nm=t.slice(4), c=(S.counts||{})[t]||0, ms=(S.delays||{})[t]||0;
     var row=document.createElement('div');row.className='pool';
     row.innerHTML='<span class="nm">'+nm+'</span><span class="cnt">'+c+' nodes</span>'+
@@ -248,12 +285,11 @@ function render(){
   el('ox-ver').textContent='sing-box-awg'+(ver?' '+ver:'')+' · AWG 2.0';
   el('ox-socks').textContent='127.0.0.1:'+(S.socks_port||'7890');
   el('ox-clash').textContent=':'+(S.clash_port||'9090');
-  el('ox-dash').href='http://'+location.hostname+':'+(S.clash_port||'9090')+'/ui/';
 }
 
 function loadStatus(){
   return fetch(OX_STATUS,{credentials:'same-origin'}).then(function(r){return r.json();}).then(function(s){
-    S=s||{}; render(); connectTraffic();
+    var ip=S.ip; S=s||{}; if(ip&&!S.ip) S.ip=ip; render(); connectTraffic();
   }).catch(function(e){msg('status error: '+e,true);});
 }
 
@@ -268,14 +304,22 @@ function doAct(act,btn){
     .catch(function(e){msg('Error: '+e,true);if(btn){btn.disabled=false;}});
 }
 
-function runTest(){
-  var b=el('ox-test'); b.disabled=true; b.textContent='Testing…';
+// live end-to-end probe through the active exit: returns {ip, ms}. Drives BOTH
+// the Latency number and the Internet node — whichever the user clicked.
+function probe(which){
+  if(probing) return; probing=true;
+  var lat=el('ox-lat'), net=el('ox-net');
+  if(which==='lat'){lat.classList.add('busy');lat.textContent='pinging…';}
+  else if(net){net.classList.add('busy');}
+  msg('Testing the '+pretty(S.active)+' exit…');
   post({act:'test'}).then(function(j){
     var r={}; try{r=JSON.parse(j.out);}catch(e){}
-    b.disabled=false; b.textContent='↻ Test connection';
-    if(r.ip){ el('ox-ip').textContent=r.ip; if(r.ms) el('ox-lat').textContent=r.ms+' ms'; S.ip=r.ip; render(); msg('Exit '+r.ip+' · '+r.ms+' ms'); }
-    else { msg('Test failed — the active config may be down',true); }
-  }).catch(function(e){b.disabled=false;b.textContent='↻ Test connection';msg('Test error: '+e,true);});
+    probing=false; lat.classList.remove('busy'); if(net) net.classList.remove('busy');
+    if(r.ip){
+      S.ip=r.ip; if(r.ms){(S.delays=S.delays||{})[S.active]=r.ms;}
+      render(); msg('Exit '+r.ip+(r.ms?' · '+r.ms+' ms':''));
+    } else { render(); msg('Probe failed — the '+pretty(S.active)+' exit may be down',true); }
+  }).catch(function(e){probing=false;lat.classList.remove('busy');if(net)net.classList.remove('busy');render();msg('Probe error: '+e,true);});
 }
 
 // live throughput via clash-api /traffic websocket (degrades gracefully)
@@ -301,14 +345,15 @@ function connectTraffic(){
 }
 
 // wire
-el('ox-test').onclick=runTest;
+el('ox-lat').onclick=function(){probe('lat');};
+el('ox-ip').onclick=function(){probe('ip');};
 el('ox-upd').onclick=function(){if(!confirm('Update the OXID panel from GitHub? (no reconnect)'))return;
   msg('Updating from GitHub via the proxy…');post({act:'self-update'}).then(function(j){msg((j.out||'').trim());setTimeout(function(){location.reload();},12000);});};
 el('ox-upd-apply').onclick=function(){if(!confirm('Update from GitHub and reload the core (brief reconnect)?'))return;
   msg('Updating + applying…');post({act:'self-update-apply'}).then(function(j){msg((j.out||'').trim());setTimeout(function(){location.reload();},16000);});};
 [].forEach.call(document.querySelectorAll('.actions .btn[data-act]'),function(b){b.onclick=function(){doAct(b.getAttribute('data-act'),b);};});
 
-loadStatus().then(function(){setTimeout(runTest,400);});
+loadStatus().then(function(){setTimeout(function(){probe('lat');},400);});
 setInterval(loadStatus, 7000);
 //]]></script>
 <%+footer%>

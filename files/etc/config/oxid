@@ -9,8 +9,9 @@ config singbox 'main'
 	option healthcheck_url 'https://www.gstatic.com/generate_204'
 	# active outbound (main): a subscription name, a static tag (e.g. amnezia), or 'direct'
 	option active 'reality'
-	# re-fetch subscriptions into RAM every hour without restarting the core
-	option hourly '1'
+	# opt-in: re-fetch subscriptions into RAM every hour without restarting the
+	# core (no disconnect). Off by default — turn on only if you live on OXID.
+	option hourly '0'
 	# keep the main preferred; fail over to a healthy sub if it dies
 	option watchdog '1'
 
