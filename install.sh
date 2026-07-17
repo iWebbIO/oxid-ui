@@ -94,7 +94,7 @@ rm -f /tmp/luci-*cache* 2>/dev/null || true
 /etc/init.d/rpcd restart >/dev/null 2>&1 || true
 /etc/init.d/uhttpd restart >/dev/null 2>&1 || true
 
-IP="$(uci -q get network.lan.ipaddr || echo <router-ip>)"
+IP="$(uci -q get network.lan.ipaddr 2>/dev/null || echo 192.168.1.1)"
 echo
 say "done."
 echo "   LuCI:      Services -> Sing-Box Subs"
