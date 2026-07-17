@@ -1,0 +1,439 @@
+<%+header%>
+<style>
+@font-face{
+  font-family:'OXID Wordmark';
+  src:url(data:font/woff2;base64,d09GMgABAAAAAAKYAAwAAAAABPgAAAJJAAQBBgAAAAAAAAAAAAAAAAAAAAAAAAAAGyAcMAZgAEwKgXiBYQE2AiQDFAsMAAQgBYJ6ByAbBATInoNNWZ4VwVN10sW1v2t1rSIevt+vnfv+W9GEWWbIDFm8upWA1yU0IiV6qZY6a8C4vLcHJVslrZJKbKpCXgQ39z9Ab22f76YWlXjvmBL57+iwgUcBnjVsTApx4fZeYAFt7XnqphARHwMbOQYLRbbSy8fNAnUjVBDm3X1DQZehK5BpU/SRRPF5WrkxVCglhdVkw7mwwTcKqUOMBKzxrXEI43AFKAAIAFhZdw/ACuZFZoX/Nqm5gFgCCEgjxCXABDISCvQgCfQgmwF1VUkyz0uAyK7wYdysCQMRAAAlUEcZs+AKQAYkIYkag8zns18u8XDBrFNYN9eExytmncxKIDMpD1dXhMfra9bT5R86XjrRWMeIWJewrqKY0ZHMmGhWVAxrfXlxuqdHNVOzK7ODg6PDTU1aMtTZ0InMrxXxCiYrNdFh7ZmZwlNNSrIrQlAdHFyXkQGgGhmJBSAfnSTYDirIYerRNnzv3QEQyEGtGnlQT+DZvtEL0iPw3dE7BvAnNT/8+/97qO+QiaAigeD8Rt08Ub/mIw7mjVdInwgjp5CDbexTQUDJM9iuUbF1DBXnoJBQsYskMgO8ACZhQBtJ2l5JYdpOPuekpO5/XdlA0DGnQKEqxbJkyFRKjTFDdakJlSmNmkBioPF8JRFVUMiWJgU7OSlTKlOB4oxp2lGqFGDQmgEDGbLS7jLJ9KUokMdgNdIZFPOlKlaFkD3lWnt5qEwbwfhvGcrkSlLMSyh3AWyolen3B1P6DBkylcxSCKkrejbJpdddxgAAAA==) format('woff2');
+  font-weight:100;font-display:swap;
+}
+.oxid-app{
+  --bg:oklch(0.165 0.006 55);--surface:oklch(0.205 0.008 55);--surface-2:oklch(0.245 0.010 55);
+  --line:oklch(1 0 0 / 0.09);--line-strong:oklch(1 0 0 / 0.15);
+  --ink:oklch(0.96 0.004 75);--muted:oklch(0.74 0.012 65);--faint:oklch(0.60 0.010 65);
+  --ember:oklch(0.705 0.165 48);--ember-ink:oklch(0.20 0.05 48);--ember-soft:oklch(0.705 0.165 48 / 0.13);
+  --up:oklch(0.78 0.15 155);--down:oklch(0.72 0.15 235);--bad:oklch(0.66 0.19 25);
+  --sub:oklch(0.72 0.15 235);--node:oklch(0.78 0.15 155);--grp:oklch(0.72 0.16 300);--static:var(--ember);
+  --r:14px;--r-sm:10px;--ease:cubic-bezier(.22,1,.36,1);
+  color-scheme:dark;background:
+    radial-gradient(120% 90% at 92% -10%, oklch(0.705 0.165 48 / 0.10), transparent 55%),
+    radial-gradient(90% 70% at -10% 0%, oklch(0.55 0.09 260 / 0.08), transparent 50%),
+    var(--bg);
+  color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  letter-spacing:-0.006em;border-radius:var(--r);padding:clamp(16px,2.4vw,26px);margin:-4px 0 0;
+}
+.oxid-app *{box-sizing:border-box}
+.oxid-app .top{display:flex;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.oxid-app .brand{display:flex;align-items:baseline;gap:12px;line-height:1}
+.oxid-app .wordmark{font-family:'OXID Wordmark',system-ui;font-weight:100;font-size:34px;letter-spacing:0.16em;padding-left:0.16em}
+.oxid-app .crumb{color:var(--faint);font-size:13px}
+.oxid-app .spacer{flex:1}
+.oxid-app .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:16px}
+.oxid-app .card>h2{font-size:12px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--faint);margin:0 0 4px;display:flex;align-items:center;gap:10px}
+.oxid-app .card>.sub{color:var(--faint);font-size:12.5px;margin:0 0 16px}
+.oxid-app .row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.oxid-app .row:last-child{border-bottom:0}
+.oxid-app .row .nm{font-weight:600;font-size:14px}
+.oxid-app .row .desc{color:var(--faint);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.oxid-app .row .grow{flex:1;min-width:0}
+.oxid-app .tag{display:inline-flex;align-items:center;gap:6px;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:600;border:1px solid var(--line-strong);color:var(--muted)}
+.oxid-app .tag::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.oxid-app .tag.k-sub{color:var(--sub)}.oxid-app .tag.k-node{color:var(--node)}
+.oxid-app .tag.k-grp{color:var(--grp)}.oxid-app .tag.k-static{color:var(--static)}
+.oxid-app .tag.k-chain{color:var(--ember)}
+.oxid-app .cnt{font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums}
+.oxid-app .empty{color:var(--faint);font-size:13px;padding:8px 0}
+.oxid-app .btn{appearance:none;cursor:pointer;font:inherit;font-size:13px;font-weight:600;padding:8px 13px;border-radius:var(--r-sm);background:var(--surface-2);color:var(--ink);border:1px solid var(--line-strong);transition:all .16s var(--ease);display:inline-flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap}
+.oxid-app .btn:hover{border-color:var(--faint);transform:translateY(-1px)}
+.oxid-app .btn:active{transform:translateY(0)}
+.oxid-app .btn:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
+.oxid-app .btn[disabled]{opacity:.45;cursor:default;transform:none}
+.oxid-app .btn.sm{padding:5px 10px;font-size:12px}
+.oxid-app .btn.ghost{background:transparent}
+.oxid-app .btn.primary{background:var(--ember);color:var(--ember-ink);border-color:transparent}
+.oxid-app .btn.primary:hover{background:oklch(0.74 0.17 48)}
+.oxid-app .btn.danger{color:var(--bad);border-color:oklch(0.66 0.19 25 / 0.4)}
+.oxid-app .btn.danger:hover{background:oklch(0.66 0.19 25 / 0.12);border-color:var(--bad)}
+.oxid-app .sw{position:relative;width:38px;height:22px;flex:0 0 auto;border-radius:999px;background:var(--surface-2);border:1px solid var(--line-strong);cursor:pointer;transition:all .16s var(--ease)}
+.oxid-app .sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--faint);transition:all .18s var(--ease)}
+.oxid-app .sw[aria-checked=true]{background:var(--ember);border-color:transparent}
+.oxid-app .sw[aria-checked=true]::after{left:18px;background:var(--ember-ink)}
+.oxid-app input,.oxid-app select,.oxid-app textarea{font:inherit;font-size:13.5px;color:var(--ink);background:var(--bg);border:1px solid var(--line-strong);border-radius:var(--r-sm);padding:9px 11px;width:100%}
+.oxid-app textarea{min-height:96px;resize:vertical;font-family:ui-monospace,Menlo,monospace;font-size:12.5px}
+.oxid-app input:focus,.oxid-app select:focus,.oxid-app textarea:focus{outline:none;border-color:var(--ember)}
+.oxid-app label.f{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--faint);font-weight:600}
+.oxid-app .form{display:none;margin-top:14px;padding-top:16px;border-top:1px solid var(--line)}
+.oxid-app .form.on{display:block}
+.oxid-app .fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:12px}
+.oxid-app .frow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+/* route builder */
+.oxid-app .rb{background:linear-gradient(180deg,oklch(0.205 0.008 55),oklch(0.19 0.008 55));border:1px solid var(--line-strong)}
+.oxid-app .typesel{display:inline-flex;gap:6px;background:var(--surface-2);padding:4px;border-radius:999px;border:1px solid var(--line)}
+.oxid-app .typesel button{appearance:none;cursor:pointer;font:inherit;font-size:13px;font-weight:600;padding:7px 16px;border-radius:999px;background:transparent;color:var(--muted);border:0;transition:all .16s var(--ease)}
+.oxid-app .typesel button[aria-pressed=true]{background:var(--ember);color:var(--ember-ink)}
+.oxid-app .canvas{margin:18px 0;padding:20px;border-radius:var(--r);background:
+    repeating-linear-gradient(45deg,oklch(1 0 0 / 0.012) 0 10px,transparent 10px 20px),var(--bg);
+  border:1px dashed var(--line-strong);min-height:92px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.oxid-app .stage{position:relative;padding:11px 14px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line-strong);font-size:13px;font-weight:600;display:flex;flex-direction:column;gap:2px;min-width:96px;animation:pop .2s var(--ease)}
+@keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.oxid-app .stage small{font-size:10.5px;color:var(--faint);font-weight:500}
+.oxid-app .stage.entry{border-color:var(--sub);box-shadow:inset 0 0 0 1px oklch(0.72 0.15 235 / 0.2)}
+.oxid-app .stage.exit{border-color:var(--ember);background:var(--ember-soft);color:var(--ember)}
+.oxid-app .stage.net{background:transparent;border-style:dashed;color:var(--muted)}
+.oxid-app .stage .x{position:absolute;top:-8px;right:-8px;width:20px;height:20px;border-radius:50%;background:var(--bad);color:#fff;border:2px solid var(--surface);cursor:pointer;font-size:12px;line-height:1;display:none;align-items:center;justify-content:center;padding:0}
+.oxid-app .stage:hover .x{display:flex}
+.oxid-app .flow{color:var(--faint);font-size:18px}
+.oxid-app .ph{color:var(--faint);font-size:13px}
+.oxid-app .palette{display:flex;flex-wrap:wrap;gap:8px}
+.oxid-app .chip{appearance:none;cursor:pointer;font:inherit;font-size:12.5px;font-weight:600;padding:7px 12px;border-radius:999px;background:var(--surface-2);color:var(--ink);border:1px solid var(--line-strong);display:inline-flex;align-items:center;gap:7px;transition:all .16s var(--ease)}
+.oxid-app .chip:hover{border-color:var(--faint);transform:translateY(-1px)}
+.oxid-app .chip[aria-pressed=true]{border-color:var(--ember);background:var(--ember-soft);color:var(--ember)}
+.oxid-app .chip .kd{width:8px;height:8px;border-radius:50%}
+.oxid-app .chip .kd.k-sub{background:var(--sub)}.oxid-app .chip .kd.k-node{background:var(--node)}
+.oxid-app .chip .kd.k-grp{background:var(--grp)}.oxid-app .chip .kd.k-static{background:var(--static)}
+.oxid-app .hint{color:var(--faint);font-size:12px;margin:12px 0 6px;display:flex;align-items:center;gap:7px}
+.oxid-app #ox-msg{min-height:18px;font-size:13px;color:var(--muted);margin:4px 2px 0}
+.oxid-app #ox-msg.err{color:var(--bad)}.oxid-app #ox-msg.ok{color:var(--up)}
+.oxid-app .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--faint);margin-top:2px}
+.oxid-app .legend span{display:inline-flex;align-items:center;gap:5px}
+.oxid-app .legend i{width:8px;height:8px;border-radius:50%}
+@media(prefers-reduced-motion:reduce){.oxid-app *{animation:none!important;transition:none!important}}
+</style>
+
+<div class="oxid-app">
+  <header class="top">
+    <div class="brand"><span class="wordmark">OXID</span><span class="crumb">Manage</span></div>
+    <span class="spacer"></span>
+    <a class="btn ghost sm" href="<%=url('admin','services','oxid','control')%>">← Dashboard</a>
+  </header>
+
+  <!-- ROUTE BUILDER -->
+  <section class="card rb">
+    <h2>Route builder <span class="tag k-chain" id="rb-badge" style="text-transform:none;letter-spacing:0">visual</span></h2>
+    <p class="sub">Compose a load-balancer or a proxy chain by clicking blocks. A chain dials each hop through the previous one — so the last node is your exit (e.g. balance a subscription, exit through a SOCKS5 node).</p>
+
+    <div class="typesel" role="tablist">
+      <button id="t-chain" aria-pressed="true">⛓ Chain</button>
+      <button id="t-bal" aria-pressed="false">⚖ Balancer</button>
+    </div>
+
+    <div class="canvas" id="rb-canvas"><span class="ph">Pick blocks below to build your route…</span></div>
+
+    <div class="frow" style="margin-bottom:4px">
+      <label class="f" style="flex:1;min-width:160px"><span id="rb-namelbl">Route name</span>
+        <input id="rb-name" placeholder="e.g. eu-then-socks" autocomplete="off"></label>
+      <label class="f" id="rb-stratwrap" style="min-width:180px;display:none"><span>Balancer strategy</span>
+        <select id="rb-strat">
+          <option value="urltest">Fastest — lowest ping (leastPing)</option>
+          <option value="manual">Manual — I pick, no auto-switch</option>
+          <option value="failover">Failover — drop dead nodes</option>
+          <option value="roundrobin" disabled>Round-robin — needs Xray (soon)</option>
+          <option value="leastload" disabled>Least-load — needs Xray (soon)</option>
+        </select></label>
+      <button class="btn primary" id="rb-save" style="align-self:flex-end">Save route</button>
+    </div>
+
+    <div class="hint" id="rb-hint"></div>
+    <div class="palette" id="rb-palette"></div>
+    <div class="legend">
+      <span><i style="background:var(--sub)"></i>Subscription</span>
+      <span><i style="background:var(--node)"></i>Node</span>
+      <span><i style="background:var(--grp)"></i>Balancer</span>
+      <span><i style="background:var(--static)"></i>Tunnel</span>
+    </div>
+  </section>
+
+  <!-- EXISTING ROUTES -->
+  <section class="card">
+    <h2>Your routes</h2>
+    <p class="sub">Balancers and chains you've built. “Use” switches the active exit to it instantly.</p>
+    <div id="ox-routes"></div>
+  </section>
+
+  <!-- NODES -->
+  <section class="card">
+    <h2>Nodes</h2>
+    <p class="sub">Single exit servers — paste a share link, or add a SOCKS5 / HTTP / Shadowsocks / WireGuard exit by hand. No JSON.</p>
+    <div id="ox-nodes"></div>
+    <div class="frow">
+      <button class="btn" id="node-toggle">+ Add node</button>
+    </div>
+    <div class="form" id="node-form">
+      <label class="f" style="margin-bottom:12px"><span>How to add</span>
+        <select id="nf-mode">
+          <option value="link">Paste a share link (vless / vmess / trojan / ss / hysteria2 / tuic)</option>
+          <option value="socks">SOCKS5 proxy</option>
+          <option value="http">HTTP proxy</option>
+          <option value="shadowsocks">Shadowsocks</option>
+          <option value="wireguard">WireGuard / AmneziaWG (wg-quick)</option>
+        </select></label>
+      <label class="f" style="margin-bottom:12px"><span>Name</span><input id="nf-name" placeholder="e.g. my-socks" autocomplete="off"></label>
+      <div id="nf-link" class="nf-mode"><label class="f"><span>Share link</span><input id="nf-linkv" placeholder="vless://… or vmess://… etc." autocomplete="off"></label></div>
+      <div id="nf-manual" class="nf-mode" style="display:none">
+        <div class="fgrid">
+          <label class="f"><span>Server</span><input id="nf-server" placeholder="1.2.3.4 or host" autocomplete="off"></label>
+          <label class="f"><span>Port</span><input id="nf-port" placeholder="1080" inputmode="numeric" autocomplete="off"></label>
+          <label class="f" id="nf-methodw" style="display:none"><span>Method</span>
+            <select id="nf-method"><option>aes-128-gcm</option><option>aes-256-gcm</option><option>chacha20-ietf-poly1305</option><option>2022-blake3-aes-128-gcm</option></select></label>
+          <label class="f"><span>Username <small style="font-weight:400">(optional)</small></span><input id="nf-user" autocomplete="off"></label>
+          <label class="f"><span id="nf-pwlbl">Password <small style="font-weight:400">(optional)</small></span><input id="nf-pass" autocomplete="off"></label>
+          <label class="f" id="nf-tlsw" style="display:none"><span>TLS</span><select id="nf-tls"><option value="">off</option><option value="1">on</option></select></label>
+        </div>
+      </div>
+      <div id="nf-wg" class="nf-mode" style="display:none"><label class="f"><span>wg-quick config</span><textarea id="nf-wgv" placeholder="[Interface]&#10;PrivateKey = …&#10;Address = …&#10;[Peer]&#10;PublicKey = …&#10;Endpoint = host:port&#10;# AmneziaWG Jc/Jmin/… lines are supported"></textarea></label></div>
+      <div class="frow"><button class="btn primary" id="nf-save">Save node</button><button class="btn ghost" id="nf-cancel">Cancel</button></div>
+    </div>
+  </section>
+
+  <!-- SUBSCRIPTIONS -->
+  <section class="card">
+    <h2>Subscriptions</h2>
+    <p class="sub">Auto-fetched node lists (sing-box JSON, base64, or plaintext share links). Nodes live in RAM.</p>
+    <div id="ox-subs"></div>
+    <div class="frow"><button class="btn" id="sub-toggle">+ Add subscription</button></div>
+    <div class="form" id="sub-form">
+      <div class="fgrid">
+        <label class="f"><span>Name</span><input id="sf-name" placeholder="e.g. reality" autocomplete="off"></label>
+        <label class="f" style="grid-column:span 2"><span>URL</span><input id="sf-url" placeholder="https://…" autocomplete="off"></label>
+      </div>
+      <div class="frow"><button class="btn primary" id="sf-save">Add</button><button class="btn ghost" id="sf-cancel">Cancel</button></div>
+    </div>
+  </section>
+
+  <div id="ox-msg"></div>
+</div>
+
+<script type="text/javascript">//<![CDATA[
+var OX_CONFIG='<%=url("admin","services","oxid","config")%>';
+var OX_STATUS='<%=url("admin","services","oxid","status")%>';
+var OX_DO='<%=url("admin","services","oxid","do")%>';
+var OX_TOKEN='<%=token%>';
+var C={}, S={}, busy=false;
+// builder state
+var B={type:'chain', entry:null, hops:[], members:[]};
+
+function el(id){return document.getElementById(id);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function msg(t,cls){var m=el('ox-msg');m.textContent=t||'';m.className=cls||'';}
+function post(p){p.token=OX_TOKEN;
+  var b=Object.keys(p).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(p[k]);}).join('&');
+  return fetch(OX_DO,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:b,credentials:'same-origin'}).then(function(r){return r.json();});}
+// run a mutation verb; interpret edit.py's {ok,msg} JSON (or plain text) uniformly
+function mutate(verb,payload,arg){
+  if(busy) return Promise.resolve(); busy=true; msg('Working…');
+  return post({act:verb,arg:arg||'',body:payload?JSON.stringify(payload):''}).then(function(j){
+    busy=false; var out=(j.out||'').trim(); var r=null;
+    try{r=JSON.parse(out);}catch(e){}
+    if(r){ if(r.ok){msg(r.msg||'done','ok');} else {msg(r.msg||'failed','err'); throw new Error(r.msg);} }
+    else { if(/^ERR|error/i.test(out)){msg(out,'err');throw new Error(out);} msg(out||'done','ok'); }
+    return loadAll();
+  }).catch(function(e){busy=false; if(!/failed|ERR/i.test(String(e.message))) msg('Error: '+e,'err');});
+}
+
+// ---- refs & labels for every building block ----
+function subCount(name){return (S.counts||{})['sub:'+name]||0;}
+function blocks(){ // available blocks for routes: subs, balancers, nodes, tunnels
+  var out=[];
+  (C.subs||[]).filter(function(s){return s.enabled!=='0';}).forEach(function(s){out.push({ref:'sub:'+s.name,kind:'sub',label:s.name,meta:subCount(s.name)+' nodes'});});
+  (C.groups||[]).forEach(function(g){out.push({ref:'group:'+g.id,kind:'grp',label:g.label||g.id,meta:'balancer'});});
+  (C.nodes||[]).forEach(function(n){out.push({ref:'node:'+n.id,kind:'node',label:n.label||n.id,meta:n.type||'link'});});
+  (C.statics||[]).forEach(function(t){out.push({ref:t.tag,kind:'static',label:t.tag,meta:t.type});});
+  return out;
+}
+function blockByRef(ref){var b=blocks().filter(function(x){return x.ref===ref;})[0];return b||{ref:ref,kind:'static',label:ref,meta:''};}
+function isNode(ref){return ref.indexOf('node:')===0;}
+
+// ---- ROUTE BUILDER ----
+function setType(t){
+  B.type=t; B.entry=null; B.hops=[]; B.members=[];
+  el('t-chain').setAttribute('aria-pressed',String(t==='chain'));
+  el('t-bal').setAttribute('aria-pressed',String(t==='bal'));
+  el('rb-stratwrap').style.display=t==='bal'?'flex':'none';
+  el('rb-namelbl').textContent=t==='bal'?'Balancer name':'Chain name';
+  renderBuilder();
+}
+function pickBlock(bl){
+  if(B.type==='bal'){
+    var i=B.members.indexOf(bl.ref);
+    if(i>=0) B.members.splice(i,1); else B.members.push(bl.ref);
+  } else { // chain
+    if(!B.entry){ B.entry=bl.ref; }
+    else if(isNode(bl.ref)){ if(B.hops.indexOf(bl.ref)<0) B.hops.push(bl.ref); }
+    else { B.entry=bl.ref; } // non-node re-sets the entry
+  }
+  renderBuilder();
+}
+function renderBuilder(){
+  // palette
+  var pal=el('rb-palette'); pal.innerHTML='';
+  var bs=blocks();
+  if(!bs.length){pal.innerHTML='<span class="empty">Add a subscription or node first — then compose it here.</span>';}
+  bs.forEach(function(bl){
+    var on=(B.type==='bal')?B.members.indexOf(bl.ref)>=0:(B.entry===bl.ref||B.hops.indexOf(bl.ref)>=0);
+    var c=document.createElement('button');c.className='chip';c.setAttribute('aria-pressed',String(on));
+    c.innerHTML='<span class="kd k-'+bl.kind+'"></span>'+esc(bl.label)+' <small style="color:var(--faint);font-weight:500">'+esc(bl.meta)+'</small>';
+    c.onclick=function(){pickBlock(bl);};pal.appendChild(c);
+  });
+  // hint
+  el('rb-hint').innerHTML = B.type==='bal'
+    ? '⚖ Click blocks to add/remove members. The balancer picks among them by your strategy.'
+    : '⛓ First click sets the <b style="color:var(--sub)">entry</b>; then click <b style="color:var(--node)">nodes</b> to add exit hops. The last node is your exit.';
+  // canvas
+  var cv=el('rb-canvas'); cv.innerHTML='';
+  function stage(cls,title,sub,onx){var s=document.createElement('span');s.className='stage '+cls;
+    s.innerHTML=esc(title)+(sub?'<small>'+esc(sub)+'</small>':'');
+    if(onx){var x=document.createElement('button');x.className='x';x.textContent='×';x.onclick=function(ev){ev.stopPropagation();onx();};s.appendChild(x);}
+    return s;}
+  function flow(){var f=document.createElement('span');f.className='flow';f.textContent='→';return f;}
+  cv.appendChild(stage('','You','LAN → passwall2',null));
+  if(B.type==='bal'){
+    if(!B.members.length){cv.appendChild(flow());var p=document.createElement('span');p.className='ph';p.textContent='pick members…';cv.appendChild(p);}
+    else {
+      cv.appendChild(flow());
+      var g=stage('exit',(el('rb-name').value||'balancer'),B.members.length+' members · '+el('rb-strat').value,null);
+      cv.appendChild(g);
+    }
+  } else {
+    if(B.entry){cv.appendChild(flow());var b=blockByRef(B.entry);
+      cv.appendChild(stage(B.hops.length?'entry':'entry exit',b.label,b.meta+' · entry',function(){B.entry=null;renderBuilder();}));}
+    B.hops.forEach(function(ref,i){cv.appendChild(flow());var b=blockByRef(ref);
+      cv.appendChild(stage(i===B.hops.length-1?'exit':'',b.label,i===B.hops.length-1?'exit node':'hop',function(){B.hops.splice(i,1);renderBuilder();}));});
+    if(!B.entry){cv.appendChild(flow());var ph=document.createElement('span');ph.className='ph';ph.textContent='pick an entry…';cv.appendChild(ph);}
+  }
+  cv.appendChild(flow()); cv.appendChild(stage('net','Internet','',null));
+}
+function saveRoute(){
+  var name=(el('rb-name').value||'').trim();
+  if(!name){msg('Give the route a name',' err');return;}
+  if(B.type==='bal'){
+    if(!B.members.length){msg('Add at least one member','err');return;}
+    mutate('group-set',{id:name,label:name,kind:el('rb-strat').value,members:B.members}).then(function(){
+      el('rb-name').value='';B.members=[];renderBuilder();});
+  } else {
+    if(!B.entry){msg('Pick an entry block','err');return;}
+    if(!B.hops.length){msg('Add at least one exit node (a chain needs the entry plus an exit)','err');return;}
+    var hops=[B.entry].concat(B.hops);
+    mutate('chain-set',{id:name,label:name,hops:hops}).then(function(){
+      el('rb-name').value='';B.entry=null;B.hops=[];renderBuilder();});
+  }
+}
+
+// ---- ROUTES / NODES / SUBS lists ----
+function useRoute(tag){post({act:'switch',arg:tag}).then(function(){msg('Switched active exit to '+tag,'ok');});}
+function renderRoutes(){
+  var box=el('ox-routes');box.innerHTML='';
+  var groups=C.groups||[], chains=C.chains||[];
+  if(!groups.length&&!chains.length){box.innerHTML='<div class="empty">No routes yet — build one above.</div>';return;}
+  groups.forEach(function(g){
+    var r=document.createElement('div');r.className='row';
+    r.innerHTML='<span class="tag k-grp">balancer</span><div class="grow"><div class="nm">'+esc(g.label||g.id)+
+      '</div><div class="desc">'+(g.kind||'urltest')+' · '+(g.members||[]).map(esc).join(', ')+'</div></div>';
+    var use=document.createElement('button');use.className='btn sm';use.textContent='Use';use.onclick=function(){useRoute('grp:'+g.id);};
+    var del=document.createElement('button');del.className='btn sm danger';del.textContent='Delete';del.onclick=function(){if(confirm('Delete balancer '+g.id+'?'))mutate('group-del',{id:g.id});};
+    r.appendChild(use);r.appendChild(del);box.appendChild(r);
+  });
+  chains.forEach(function(ch){
+    var r=document.createElement('div');r.className='row';
+    r.innerHTML='<span class="tag k-chain">chain</span><div class="grow"><div class="nm">'+esc(ch.label||ch.id)+
+      '</div><div class="desc">'+(ch.hops||[]).map(esc).join(' → ')+'</div></div>';
+    var use=document.createElement('button');use.className='btn sm';use.textContent='Use';use.onclick=function(){useRoute('chain:'+ch.id);};
+    var del=document.createElement('button');del.className='btn sm danger';del.textContent='Delete';del.onclick=function(){if(confirm('Delete chain '+ch.id+'?'))mutate('chain-del',{id:ch.id});};
+    r.appendChild(use);r.appendChild(del);box.appendChild(r);
+  });
+}
+function nodeDesc(n){
+  if(n.link) return 'link · '+(n.link.split('://')[0]||'');
+  var d=(n.type||'socks')+' · '+(n.server||'?')+':'+(n.port||'?');
+  return d;
+}
+function renderNodes(){
+  var box=el('ox-nodes');box.innerHTML='';
+  var nodes=C.nodes||[];
+  if(!nodes.length){box.innerHTML='<div class="empty">No manual nodes. Add a SOCKS5 exit here to chain it after a subscription.</div>';return;}
+  nodes.forEach(function(n){
+    var r=document.createElement('div');r.className='row';
+    r.innerHTML='<span class="tag k-node">node</span><div class="grow"><div class="nm">'+esc(n.label||n.id)+
+      '</div><div class="desc">'+esc(nodeDesc(n))+'</div></div>';
+    var del=document.createElement('button');del.className='btn sm danger';del.textContent='Delete';del.onclick=function(){if(confirm('Delete node '+n.id+'?'))mutate('node-del',{id:n.id});};
+    r.appendChild(del);box.appendChild(r);
+  });
+  // static endpoints (wireguard etc.) live in /static — show + allow delete
+  (C.statics||[]).forEach(function(t){
+    var r=document.createElement('div');r.className='row';
+    r.innerHTML='<span class="tag k-static">tunnel</span><div class="grow"><div class="nm">'+esc(t.tag)+
+      '</div><div class="desc">'+esc(t.type)+'</div></div>';
+    var del=document.createElement('button');del.className='btn sm danger';del.textContent='Delete';del.onclick=function(){if(confirm('Delete tunnel '+t.tag+'?'))post({act:'static-del',arg:t.tag}).then(loadAll);};
+    r.appendChild(del);box.appendChild(r);
+  });
+}
+function renderSubs(){
+  var box=el('ox-subs');box.innerHTML='';
+  var subs=C.subs||[];
+  if(!subs.length){box.innerHTML='<div class="empty">No subscriptions yet.</div>';return;}
+  subs.forEach(function(s){
+    var r=document.createElement('div');r.className='row';
+    var on=s.enabled!=='0';
+    r.innerHTML='<span class="tag k-sub">sub</span><div class="grow"><div class="nm">'+esc(s.name)+
+      ' <span class="cnt">'+subCount(s.name)+' nodes</span></div><div class="desc">'+esc(s.url)+'</div></div>';
+    var sw=document.createElement('button');sw.className='sw';sw.setAttribute('aria-checked',String(on));sw.title=on?'On':'Off';
+    sw.onclick=function(){mutate('sub-toggle',{name:s.name,enabled:on?'0':'1'});};
+    var del=document.createElement('button');del.className='btn sm danger';del.textContent='Delete';del.onclick=function(){if(confirm('Remove subscription '+s.name+'?'))mutate('sub-del',{name:s.name});};
+    r.appendChild(sw);r.appendChild(del);box.appendChild(r);
+  });
+}
+
+function renderAll(){renderBuilder();renderRoutes();renderNodes();renderSubs();}
+
+function loadAll(){
+  return Promise.all([
+    fetch(OX_CONFIG,{credentials:'same-origin'}).then(function(r){return r.json();}),
+    fetch(OX_STATUS,{credentials:'same-origin'}).then(function(r){return r.json();}).catch(function(){return {};})
+  ]).then(function(a){C=a[0]||{};S=a[1]||{};renderAll();}).catch(function(e){msg('load error: '+e,'err');});
+}
+
+// ---- node form ----
+function nfMode(){
+  var m=el('nf-mode').value;
+  el('nf-link').style.display=m==='link'?'block':'none';
+  el('nf-manual').style.display=(m==='socks'||m==='http'||m==='shadowsocks')?'block':'none';
+  el('nf-wg').style.display=m==='wireguard'?'block':'none';
+  el('nf-methodw').style.display=m==='shadowsocks'?'flex':'none';
+  el('nf-tlsw').style.display=m==='http'?'flex':'none';
+  el('nf-pwlbl').innerHTML=m==='shadowsocks'?'Password':'Password <small style="font-weight:400">(optional)</small>';
+}
+function saveNode(){
+  var m=el('nf-mode').value, name=(el('nf-name').value||'').trim();
+  if(!name){msg('Name the node','err');return;}
+  if(m==='wireguard'){
+    var wg=(el('nf-wgv').value||'').trim(); if(!wg){msg('Paste the wg-quick config','err');return;}
+    if(busy)return; busy=true; msg('Importing tunnel…');
+    post({act:'awg-import',arg:name,body:wg}).then(function(j){busy=false;var o=(j.out||'').trim();
+      if(/^imported/i.test(o)){msg(o,'ok');closeNodeForm();loadAll();}else{msg(o,'err');}}).catch(function(e){busy=false;msg('Error: '+e,'err');});
+    return;
+  }
+  var p={id:name,label:name};
+  if(m==='link'){var lv=(el('nf-linkv').value||'').trim();if(!lv){msg('Paste a share link','err');return;}p.link=lv;}
+  else {p.type=m;p.server=(el('nf-server').value||'').trim();p.port=(el('nf-port').value||'').trim();
+    p.username=el('nf-user').value||'';p.password=el('nf-pass').value||'';
+    if(m==='shadowsocks')p.method=el('nf-method').value;
+    if(m==='http')p.tls=el('nf-tls').value;
+    if(!p.server||!p.port){msg('Server and port required','err');return;}}
+  mutate('node-set',p).then(closeNodeForm);
+}
+function closeNodeForm(){el('node-form').classList.remove('on');
+  ['nf-name','nf-linkv','nf-server','nf-port','nf-user','nf-pass','nf-wgv'].forEach(function(id){if(el(id))el(id).value='';});}
+
+// ---- wire ----
+el('t-chain').onclick=function(){setType('chain');};
+el('t-bal').onclick=function(){setType('bal');};
+el('rb-name').oninput=renderBuilder; el('rb-strat').onchange=renderBuilder;
+el('rb-save').onclick=saveRoute;
+el('node-toggle').onclick=function(){el('node-form').classList.toggle('on');};
+el('nf-cancel').onclick=closeNodeForm; el('nf-mode').onchange=nfMode; el('nf-save').onclick=saveNode;
+el('sub-toggle').onclick=function(){el('sub-form').classList.toggle('on');};
+el('sf-cancel').onclick=function(){el('sub-form').classList.remove('on');};
+el('sf-save').onclick=function(){var n=(el('sf-name').value||'').trim(),u=(el('sf-url').value||'').trim();
+  if(!n||!u){msg('Name and URL required','err');return;}
+  mutate('sub-add',{name:n,url:u}).then(function(){el('sf-name').value='';el('sf-url').value='';el('sub-form').classList.remove('on');});};
+
+setType('chain'); nfMode(); loadAll();
+//]]></script>
+<%+footer%>

@@ -18,6 +18,11 @@ def log(*a): print("[gen]", *a, file=sys.stderr)
 
 os.makedirs(RUN, exist_ok=True)   # tmpfs is empty after reboot; ensure it exists early
 
+# Offline mode: skip network sub-fetches and use the disk lastgood cache. Set by
+# manager mutations (add node/chain/etc.) — those don't change subscription
+# contents, so re-hitting GitHub (slow, ~25s) just to restart the core is waste.
+OFFLINE = os.path.exists(RUN + "/offline") or os.environ.get("OXID_OFFLINE") == "1"
+
 _UCI_CACHE=None
 def uci_model():
     """Parse `uci -q show oxid` into {section_id: {_type, opt: value...}}.
@@ -58,10 +63,10 @@ def load_settings():
     d = {"controller":"0.0.0.0:9090","secret":"","socks_port":7890,
          "healthcheck_url":"https://www.gstatic.com/generate_204",
          "interval":"3m0s","tolerance":100,"active":"","max_nodes":120,
-         "stable_switch":"1"}
+         "stable_switch":"1","bypass_mark":"255"}
     main=uci_model().get("main",{})
     for k in ("controller","secret","socks_port","healthcheck_url",
-              "interval","max_nodes","active","stable_switch","tolerance"):
+              "interval","max_nodes","active","stable_switch","tolerance","bypass_mark"):
         if main.get(k): d[k]=main[k]
     return d
 
@@ -77,11 +82,25 @@ def strip_jsonc(s):
     s=re.sub(r'/\*.*?\*/','',s,flags=re.S)
     return s
 
+# Sub panels gate the REAL (base64/JSON) node list on a proxy-client User-Agent;
+# a plain curl or browser UA gets a landing/Cloudflare-challenge page instead
+# (that's why shadowmere-style subs parsed as ~0 nodes). Send a client UA.
+UA = "sing-box"
+SOCKS_PORT = 7890   # set from settings in build(); used to fetch subs via the proxy
+
+def _curl(url, via_proxy):
+    a = ["curl","-A",UA,"--connect-timeout","8","-m","30","-sS","-fL"]
+    if via_proxy: a += ["--socks5-hostname","127.0.0.1:%s"%SOCKS_PORT]
+    a.append(url)
+    return subprocess.check_output(a, stderr=subprocess.DEVNULL).decode("utf-8","replace")
+
 def fetch(url):
-    # short timeouts so a slow/blocked GitHub falls back to disk fast (boot safety)
-    return subprocess.check_output(
-        ["curl","--connect-timeout","8","-m","15","-sS","-fL",url],
-        stderr=subprocess.DEVNULL).decode("utf-8","replace")
+    # Proxy first: the reliable path under censorship, and it fails fast (connection
+    # refused) when the core is down at boot -> then fall back to a direct fetch.
+    try:
+        return _curl(url, True)
+    except Exception:
+        return _curl(url, False)
 
 def sanitize(o):
     # top-level `network` may only be tcp/udp; some subs wrongly put "ws"/"grpc"
@@ -291,8 +310,12 @@ def cap(px, name, maxn):
     return px
 
 def get_sub_proxies(name,url,maxn):
-    """Return (proxies, source). Try network -> update disk lastgood; else disk."""
+    """Return (proxies, source). Try network -> update disk lastgood; else disk.
+    In OFFLINE mode skip the network entirely and serve the cached lastgood."""
     lg=LAST+"/"+name+".json"
+    if OFFLINE:
+        try: return cap(json.load(open(lg)), name, maxn), "cache"
+        except Exception: return [], "empty"
     try:
         raw=fetch(url)
         px=cap(extract_proxies(raw), name, maxn)
@@ -370,13 +393,23 @@ def resolve_member(m, subnames):
                 "chain":"chain:"+rest,"static":rest}.get(pre, m)
     return ("sub:"+m) if m in subnames else m
 
+# balancer strategy -> sing-box group type. sing-box natively offers urltest
+# (lowest-latency = leastPing, also silently drops dead members = failover) and
+# selector (manual). round-robin / least-load need Xray; until that backend
+# lands they approximate to urltest, logged so the choice isn't silently lost.
+MANUAL_KINDS   = ("select","selector","manual")
+URLTEST_KINDS  = ("urltest","leastping","auto","fastest","failover","fallback")
+XRAY_ONLY_KINDS= ("roundrobin","round-robin","leastload","least-load","random")
+
 def emit_group(gid, g, st, subnames):
     kind=(g.get("kind") or "urltest").lower()
     members=[resolve_member(x,subnames) for x in aslist(g.get("member"))]
     members=[x for x in members if x] or ["direct"]
     tag="grp:"+gid
-    if kind in ("select","selector","manual"):
+    if kind in MANUAL_KINDS:
         return stable({"type":"selector","tag":tag,"outbounds":members,"default":members[0]}, st)
+    if kind in XRAY_ONLY_KINDS:
+        log("group",gid,"strategy",kind,"needs Xray core -> approximating with leastPing (urltest)")
     return stable({"type":"urltest","tag":tag,"outbounds":members,
                    "url":g.get("test_url") or st["healthcheck_url"],
                    "interval":g.get("interval") or st["interval"],
@@ -402,7 +435,9 @@ def emit_chain(cid, c, node_out, subnames, st):
     return prev,extra
 
 def build():
+    global SOCKS_PORT
     st=load_settings(); subs=load_subs()
+    SOCKS_PORT=int(st.get("socks_port",7890) or 7890)   # fetch subs through this proxy
     static_eps,static_obs=load_static()
     maxn=int(st.get("max_nodes",120) or 0)
     subnames={n for n,_ in subs}
@@ -469,6 +504,12 @@ def build():
       "route":{"final":"PROXY","auto_detect_interface":True,
                "default_domain_resolver":{"server":"local"},"rules":[]}
     }
+    # Coexist with passwall2: mark OXID's own outbound sockets so passwall's
+    # transparent-proxy nftables (TPROXY, mark 0x50535732) LETS THEM THROUGH via its
+    # `meta mark 0xff return` bypass rule. Without this, OXID's node dials + health
+    # probes get re-tunnelled through passwall's core (huge latency, false "down").
+    bm=int(st.get("bypass_mark","255") or 0)
+    if bm>0: cfg["route"]["default_mark"]=bm
     if node_obs:   report.append(f"nodes:{len(node_obs)}")
     if grp_obs:    report.append(f"groups:{len(grp_obs)}")
     if chain_tags: report.append("chains["+",".join(t.split(':',1)[1] for t in chain_tags)+"]")

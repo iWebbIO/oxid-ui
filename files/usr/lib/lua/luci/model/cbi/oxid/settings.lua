@@ -46,6 +46,14 @@ s:option(Value, "controller", translate("Dashboard controller (host:port)"))
 local sec = s:option(Value, "secret", translate("Dashboard secret"))
 sec.password = true
 s:option(Value, "max_nodes", translate("Max nodes per subscription")).datatype = "uinteger"
+
+local bm = s:option(Value, "bypass_mark", translate("passwall2 bypass mark"),
+	translate("fwmark set on OXID's own outbound sockets so passwall2's transparent proxy lets them " ..
+		"out directly instead of re-tunnelling them (which wrecks latency and makes nodes falsely " ..
+		"show as down). 255 matches passwall's 0xff bypass rule; 0 disables."))
+bm.datatype = "uinteger"
+bm.default = "255"
+
 s:option(Value, "interval", translate("Health-check interval (e.g. 3m0s)"))
 s:option(Value, "healthcheck_url", translate("Health-check URL"))
 

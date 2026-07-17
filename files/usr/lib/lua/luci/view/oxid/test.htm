@@ -1,0 +1,251 @@
+<%+header%>
+<style>
+@font-face{
+  font-family:'OXID Wordmark';
+  src:url(data:font/woff2;base64,d09GMgABAAAAAAKYAAwAAAAABPgAAAJJAAQBBgAAAAAAAAAAAAAAAAAAAAAAAAAAGyAcMAZgAEwKgXiBYQE2AiQDFAsMAAQgBYJ6ByAbBATInoNNWZ4VwVN10sW1v2t1rSIevt+vnfv+W9GEWWbIDFm8upWA1yU0IiV6qZY6a8C4vLcHJVslrZJKbKpCXgQ39z9Ab22f76YWlXjvmBL57+iwgUcBnjVsTApx4fZeYAFt7XnqphARHwMbOQYLRbbSy8fNAnUjVBDm3X1DQZehK5BpU/SRRPF5WrkxVCglhdVkw7mwwTcKqUOMBKzxrXEI43AFKAAIAFhZdw/ACuZFZoX/Nqm5gFgCCEgjxCXABDISCvQgCfQgmwF1VUkyz0uAyK7wYdysCQMRAAAlUEcZs+AKQAYkIYkag8zns18u8XDBrFNYN9eExytmncxKIDMpD1dXhMfra9bT5R86XjrRWMeIWJewrqKY0ZHMmGhWVAxrfXlxuqdHNVOzK7ODg6PDTU1aMtTZ0InMrxXxCiYrNdFh7ZmZwlNNSrIrQlAdHFyXkQGgGhmJBSAfnSTYDirIYerRNnzv3QEQyEGtGnlQT+DZvtEL0iPw3dE7BvAnNT/8+/97qO+QiaAigeD8Rt08Ub/mIw7mjVdInwgjp5CDbexTQUDJM9iuUbF1DBXnoJBQsYskMgO8ACZhQBtJ2l5JYdpOPuekpO5/XdlA0DGnQKEqxbJkyFRKjTFDdakJlSmNmkBioPF8JRFVUMiWJgU7OSlTKlOB4oxp2lGqFGDQmgEDGbLS7jLJ9KUokMdgNdIZFPOlKlaFkD3lWnt5qEwbwfhvGcrkSlLMSyh3AWyolen3B1P6DBkylcxSCKkrejbJpdddxgAAAA==) format('woff2');
+  font-weight:100;font-display:swap;
+}
+.oxid-app{
+  --bg:oklch(0.165 0.006 55);--surface:oklch(0.205 0.008 55);--surface-2:oklch(0.245 0.010 55);
+  --line:oklch(1 0 0 / 0.09);--line-strong:oklch(1 0 0 / 0.15);
+  --ink:oklch(0.96 0.004 75);--muted:oklch(0.74 0.012 65);--faint:oklch(0.60 0.010 65);
+  --ember:oklch(0.705 0.165 48);--ember-ink:oklch(0.20 0.05 48);--ember-soft:oklch(0.705 0.165 48 / 0.13);
+  --sub:oklch(0.72 0.15 235);--node:oklch(0.78 0.15 155);--grp:oklch(0.72 0.16 300);
+  --fast:oklch(0.78 0.15 155);--good:oklch(0.82 0.15 130);--ok:oklch(0.83 0.15 90);
+  --slow:oklch(0.75 0.16 55);--bad:oklch(0.66 0.19 25);
+  --r:14px;--r-sm:10px;--ease:cubic-bezier(.22,1,.36,1);
+  color-scheme:dark;background:
+    radial-gradient(120% 90% at 92% -10%, oklch(0.705 0.165 48 / 0.10), transparent 55%),
+    radial-gradient(90% 70% at -10% 0%, oklch(0.55 0.09 260 / 0.08), transparent 50%),
+    var(--bg);
+  color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  letter-spacing:-0.006em;border-radius:var(--r);padding:clamp(16px,2.4vw,26px);margin:-4px 0 0;
+}
+.oxid-app *{box-sizing:border-box}
+.oxid-app .top{display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+.oxid-app .brand{display:flex;align-items:baseline;gap:12px;line-height:1}
+.oxid-app .wordmark{font-family:'OXID Wordmark',system-ui;font-weight:100;font-size:34px;letter-spacing:0.16em;padding-left:0.16em}
+.oxid-app .crumb{color:var(--faint);font-size:13px}
+.oxid-app .spacer{flex:1}
+/* target bar */
+.oxid-app .target{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  background:oklch(0.205 0.008 55 / 0.86);backdrop-filter:blur(10px);border:1px solid var(--line);
+  border-radius:var(--r);padding:13px 16px;margin-bottom:16px}
+.oxid-app .target .lbl{font-size:11.5px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--faint)}
+.oxid-app .presets{display:inline-flex;gap:6px;flex-wrap:wrap}
+.oxid-app .presets button{appearance:none;cursor:pointer;font:inherit;font-size:13px;font-weight:600;padding:7px 14px;border-radius:999px;background:var(--surface-2);color:var(--muted);border:1px solid var(--line);transition:all .16s var(--ease)}
+.oxid-app .presets button:hover{color:var(--ink);border-color:var(--line-strong)}
+.oxid-app .presets button[aria-pressed=true]{background:var(--ember);color:var(--ember-ink);border-color:transparent}
+.oxid-app .presets button:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
+.oxid-app #tg-custom{display:none;min-width:230px;flex:1;font:inherit;font-size:13px;color:var(--ink);background:var(--bg);border:1px solid var(--line-strong);border-radius:var(--r-sm);padding:8px 11px}
+.oxid-app #tg-custom:focus{outline:none;border-color:var(--ember)}
+.oxid-app #tg-custom.on{display:block}
+.oxid-app .btn{appearance:none;cursor:pointer;font:inherit;font-size:13px;font-weight:600;padding:8px 13px;border-radius:var(--r-sm);background:var(--surface-2);color:var(--ink);border:1px solid var(--line-strong);transition:all .16s var(--ease);display:inline-flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap}
+.oxid-app .btn:hover{border-color:var(--faint);transform:translateY(-1px)}
+.oxid-app .btn:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
+.oxid-app .btn[disabled]{opacity:.5;cursor:default;transform:none}
+.oxid-app .btn.sm{padding:5px 10px;font-size:12px}
+.oxid-app .btn.ghost{background:transparent}
+.oxid-app .btn.primary{background:var(--ember);color:var(--ember-ink);border-color:transparent}
+.oxid-app .btn.primary:hover{background:oklch(0.74 0.17 48)}
+/* groups */
+.oxid-app .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;margin-bottom:14px}
+.oxid-app .ghead{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.oxid-app .ghead h2{font-size:12px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--faint);margin:0;display:flex;align-items:center;gap:8px}
+.oxid-app .ghead .kd{width:8px;height:8px;border-radius:50%}
+.oxid-app .kd.k-sub{background:var(--sub)}.oxid-app .kd.k-node{background:var(--node)}.oxid-app .kd.k-grp{background:var(--grp)}.oxid-app .kd.k-static{background:var(--ember)}
+.oxid-app .cnt{font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums}
+.oxid-app .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+.oxid-app .pill{appearance:none;cursor:pointer;font:inherit;text-align:left;display:flex;align-items:center;gap:10px;
+  padding:9px 12px;border-radius:var(--r-sm);background:var(--surface-2);border:1px solid var(--line);transition:all .14s var(--ease)}
+.oxid-app .pill:hover{border-color:var(--line-strong);transform:translateY(-1px)}
+.oxid-app .pill:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
+.oxid-app .pill .nm{flex:1;min-width:0;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.oxid-app .pill .val{font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--faint);min-width:44px;text-align:right}
+.oxid-app .pill.testing{border-color:var(--ember)}
+.oxid-app .pill.testing .val{color:var(--ember)}
+.oxid-app .pill .dotm{width:8px;height:8px;border-radius:50%;background:var(--line-strong);flex:0 0 auto}
+.oxid-app .pill.r-fast .dotm{background:var(--fast)}.oxid-app .pill.r-fast .val{color:var(--fast)}
+.oxid-app .pill.r-good .dotm{background:var(--good)}.oxid-app .pill.r-good .val{color:var(--good)}
+.oxid-app .pill.r-ok .dotm{background:var(--ok)}.oxid-app .pill.r-ok .val{color:var(--ok)}
+.oxid-app .pill.r-slow .dotm{background:var(--slow)}.oxid-app .pill.r-slow .val{color:var(--slow)}
+.oxid-app .pill.r-bad .dotm{background:var(--bad)}.oxid-app .pill.r-bad .val{color:var(--bad)}
+.oxid-app .subgrp{border:1px solid var(--line);border-radius:var(--r-sm);margin-bottom:10px;overflow:hidden}
+.oxid-app .subgrp:last-child{margin-bottom:0}
+.oxid-app .subhead{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--surface-2);cursor:pointer}
+.oxid-app .subhead .nm{font-weight:600;font-size:14px;flex:1}
+.oxid-app .subhead .chev{color:var(--faint);transition:transform .18s var(--ease)}
+.oxid-app .subgrp.open .subhead .chev{transform:rotate(90deg)}
+.oxid-app .subbody{display:none;padding:12px 14px}
+.oxid-app .subgrp.open .subbody{display:block}
+.oxid-app .empty{color:var(--faint);font-size:13px;padding:6px 0}
+.oxid-app .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--faint);margin:2px 0 0}
+.oxid-app .legend span{display:inline-flex;align-items:center;gap:5px}.oxid-app .legend i{width:8px;height:8px;border-radius:50%}
+.oxid-app #ox-msg{min-height:18px;font-size:13px;color:var(--muted);margin:6px 2px 0}
+.oxid-app #ox-msg.err{color:var(--bad)}
+@media(prefers-reduced-motion:reduce){.oxid-app *{animation:none!important;transition:none!important}}
+</style>
+
+<div class="oxid-app">
+  <header class="top">
+    <div class="brand"><span class="wordmark">OXID</span><span class="crumb">Test</span></div>
+    <span class="spacer"></span>
+    <a class="btn ghost sm" href="<%=url('admin','services','oxid','control')%>">← Dashboard</a>
+    <a class="btn ghost sm" href="<%=url('admin','services','oxid','manage')%>">Manage →</a>
+  </header>
+
+  <div class="target">
+    <span class="lbl">Ping target</span>
+    <div class="presets" id="tg-presets"></div>
+    <input id="tg-custom" placeholder="https://your-endpoint/…" spellcheck="false" autocomplete="off">
+    <span class="spacer"></span>
+    <button class="btn primary" id="tg-all">⚡ Test everything</button>
+    <button class="btn ghost sm" id="tg-reload" title="Reload the config list">↻</button>
+  </div>
+  <div class="legend">
+    <span><i style="background:var(--fast)"></i>&lt;100</span>
+    <span><i style="background:var(--good)"></i>&lt;200</span>
+    <span><i style="background:var(--ok)"></i>&lt;350</span>
+    <span><i style="background:var(--slow)"></i>&lt;600</span>
+    <span><i style="background:var(--bad)"></i>slow / down</span>
+  </div>
+
+  <div id="ox-groups" style="margin-top:16px"></div>
+  <div id="ox-msg"></div>
+</div>
+
+<script type="text/javascript">//<![CDATA[
+var OX_TAGS='<%=url("admin","services","oxid","tags")%>';
+var OX_DO='<%=url("admin","services","oxid","do")%>';
+var OX_TOKEN='<%=token%>';
+var T={}, PILLS={}, testingAll=false;
+var TARGETS=[
+  ['Google','https://www.gstatic.com/generate_204'],
+  ['Cloudflare','https://cp.cloudflare.com/generate_204'],
+  ['YouTube','https://www.youtube.com/generate_204'],
+  ['Custom','']
+];
+var target=TARGETS[0][1];
+
+function el(id){return document.getElementById(id);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function msg(t,e){var m=el('ox-msg');m.textContent=t||'';m.className=e?'err':'';}
+function post(p){p.token=OX_TOKEN;
+  var b=Object.keys(p).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(p[k]);}).join('&');
+  return fetch(OX_DO,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:b,credentials:'same-origin'}).then(function(r){return r.json();});}
+
+function currentTarget(){
+  if(target==='') { var v=(el('tg-custom').value||'').trim(); return v||'https://www.gstatic.com/generate_204'; }
+  return target;
+}
+function rclass(ms){return ms<100?'r-fast':ms<200?'r-good':ms<350?'r-ok':ms<600?'r-slow':'r-bad';}
+
+// one probe: measure <tag> to the current target, paint its pill
+function probe(tag){
+  var el2=PILLS[tag]; if(!el2) return Promise.resolve();
+  el2.className='pill testing'; el2.querySelector('.val').textContent='···';
+  return post({act:'delay',arg:tag,body:currentTarget()}).then(function(j){
+    var r={}; try{r=JSON.parse((j.out||'').trim());}catch(e){}
+    var v=el2.querySelector('.val');
+    if(r.ms!=null && !r.error){ el2.className='pill '+rclass(r.ms); v.textContent=r.ms+' ms'; }
+    else { el2.className='pill r-bad'; v.textContent='down'; }
+  }).catch(function(){el2.className='pill r-bad';el2.querySelector('.val').textContent='err';});
+}
+// bounded-concurrency sweep
+function sweep(tags,conc){
+  conc=conc||5; var i=0,active=0;
+  return new Promise(function(res){
+    (function next(){
+      if(i>=tags.length&&active===0){res();return;}
+      while(active<conc&&i<tags.length){(function(t){active++;probe(t).then(function(){active--;next();});})(tags[i++]);}
+    })();
+  });
+}
+function allTags(){
+  var out=[];
+  (T.subscriptions||[]).forEach(function(s){s.members.forEach(function(m){out.push(m.tag);});});
+  (T.balancers||[]).forEach(function(b){out.push(b.tag);});
+  (T.chains||[]).forEach(function(c){out.push(c.tag);});
+  (T.nodes||[]).forEach(function(n){out.push(n.tag);});
+  (T.tunnels||[]).forEach(function(t){out.push(t.tag);});
+  if(T.direct) out.push('direct');
+  return out;
+}
+
+function pill(tag,label){
+  var b=document.createElement('button');b.className='pill';b.type='button';
+  b.innerHTML='<span class="dotm"></span><span class="nm">'+esc(label)+'</span><span class="val">–</span>';
+  b.onclick=function(){probe(tag);};
+  PILLS[tag]=b; return b;
+}
+function gridOf(members){var g=document.createElement('div');g.className='grid';
+  members.forEach(function(m){g.appendChild(pill(m.tag,m.label));});return g;}
+
+function render(){
+  PILLS={}; var box=el('ox-groups'); box.innerHTML='';
+  function card(kind,title,count){var c=document.createElement('section');c.className='card';
+    var h=document.createElement('div');h.className='ghead';
+    h.innerHTML='<h2><span class="kd k-'+kind+'"></span>'+esc(title)+'</h2><span class="cnt">'+count+'</span>';
+    c.appendChild(h);return {c:c,h:h};}
+
+  // Subscriptions — collapsible per sub (they can hold 100+ nodes)
+  var subs=T.subscriptions||[];
+  if(subs.length){
+    var sc=card('sub','Subscriptions',subs.length+' pools');
+    subs.forEach(function(s){
+      var wrap=document.createElement('div');wrap.className='subgrp';
+      var head=document.createElement('div');head.className='subhead';
+      head.innerHTML='<span class="chev">▸</span><span class="nm">'+esc(s.label)+'</span><span class="cnt">'+s.members.length+' nodes</span>';
+      var ta=document.createElement('button');ta.className='btn sm';ta.textContent='Test all';
+      ta.onclick=function(ev){ev.stopPropagation();wrap.classList.add('open');msg('Testing '+s.label+' ('+s.members.length+' nodes)…');
+        sweep(s.members.map(function(m){return m.tag;}),6).then(function(){msg(s.label+' done');});};
+      head.appendChild(ta);
+      var body=document.createElement('div');body.className='subbody';body.appendChild(gridOf(s.members));
+      head.onclick=function(){wrap.classList.toggle('open');};
+      wrap.appendChild(head);wrap.appendChild(body);sc.c.appendChild(wrap);
+    });
+    box.appendChild(sc.c);
+  }
+  // Balancers, Chains, Nodes, Tunnels — flat grids
+  function flat(kind,title,items){
+    if(!items||!items.length) return;
+    var g=card(kind,title,items.length);
+    var grp=document.createElement('button');grp.className='btn sm ghost';grp.textContent='Test all';
+    grp.onclick=function(){msg('Testing '+title+'…');sweep(items.map(function(x){return x.tag;}),5).then(function(){msg(title+' done');});};
+    g.h.appendChild(grp);
+    g.c.appendChild(gridOf(items));box.appendChild(g.c);
+  }
+  flat('grp','Balancers',T.balancers);
+  flat('grp','Chains',T.chains);
+  flat('node','Nodes',T.nodes);
+  flat('static','Tunnels',T.tunnels);
+  if(T.direct) flat('node','Direct',[{tag:'direct',label:'direct (no proxy)'}]);
+
+  if(!box.children.length) box.innerHTML='<div class="card empty">Nothing to test yet — add a subscription or node on the Manage tab.</div>';
+}
+
+function loadTags(){
+  return fetch(OX_TAGS,{credentials:'same-origin'}).then(function(r){return r.json();}).then(function(t){
+    T=t||{}; render();
+  }).catch(function(e){msg('load error: '+e,true);});
+}
+
+// target presets
+(function(){var p=el('tg-presets');
+  TARGETS.forEach(function(t,i){var b=document.createElement('button');b.textContent=t[0];
+    b.setAttribute('aria-pressed',String(i===0));
+    b.onclick=function(){target=t[1];
+      [].forEach.call(p.children,function(x,j){x.setAttribute('aria-pressed',String(j===i));});
+      el('tg-custom').classList.toggle('on',t[0]==='Custom');
+      if(t[0]==='Custom') el('tg-custom').focus();
+      msg('Target: '+(t[1]||'custom'));};
+    p.appendChild(b);});
+})();
+el('tg-all').onclick=function(){if(testingAll)return;testingAll=true;var b=el('tg-all');b.disabled=true;
+  var tags=allTags();msg('Testing '+tags.length+' configs against '+currentTarget()+'…');
+  sweep(tags,6).then(function(){testingAll=false;b.disabled=false;msg('Tested '+tags.length+' configs.');});};
+el('tg-reload').onclick=function(){loadTags();};
+
+loadTags();
+//]]></script>
+<%+footer%>

@@ -127,14 +127,64 @@ print(json.dumps({"running":up,"active":now,"main":main,"version":ver,
     "socks_port":os.environ.get("PORT","7890")}))
 PY
 }
+delay() { # delay <tag> [url] -> {"tag","ms"} | {"tag","error"} via clash-api probe
+    # measures latency THROUGH <tag> to <url>. Handles unicode/':' tags (sub member
+    # nodes are "name│orig") by percent-encoding the path segment. Probes TWICE and
+    # keeps the lower — the first probe pays the cold handshake (AmneziaWG's idle
+    # handshake alone is ~5s), the second reflects the real steady-state latency.
+    TAG="$1" URL="${2:-http://www.gstatic.com/generate_204}" SEC="$(secret)" python3 - <<'PY'
+import os,subprocess,json
+def q(s):
+    o=[]
+    for by in s.encode("utf-8"):
+        c=chr(by)
+        o.append(c if (c.isalnum() or c in "-_.~:") else "%%%02X"%by)
+    return "".join(o)
+tag=os.environ["TAG"]; url=os.environ["URL"]; sec=os.environ["SEC"]
+u="http://127.0.0.1:9090/proxies/%s/delay?url=%s&timeout=8000"%(q(tag),q(url))
+def probe():
+    try:
+        r=subprocess.check_output(["curl","-m","12","-sS","-H","Authorization: Bearer "+sec,u],
+                                  stderr=subprocess.DEVNULL).decode("utf-8","replace")
+        d=json.loads(r); return d.get("delay") if "delay" in d else None
+    except Exception:
+        return None
+best=None
+for i in range(2):
+    ms=probe()
+    if ms is None: break               # dead/timeout -> don't waste a 2nd 8s probe
+    best=ms if best is None else min(best,ms)
+    if best<800: break                 # already good; only re-probe to warm a slow-but-alive node
+print(json.dumps({"tag":tag,"ms":best} if best is not None else {"tag":tag,"error":"timeout"}))
+PY
+}
 conntest() { # {"ip","ms"} through the proxy
     local p; p=$(uci -q get oxid.main.socks_port || echo 7890)
     local r ip t; r=$(curl -m15 -sS -w '\n%{time_total}' --socks5-hostname "127.0.0.1:$p" https://api.ipify.org 2>/dev/null)
     ip=$(printf '%s' "$r" | head -1); t=$(printf '%s' "$r" | tail -1)
     [ -n "$ip" ] && [ "$ip" != "$t" ] && echo "{\"ip\":\"$ip\",\"ms\":$(awk "BEGIN{printf \"%d\",$t*1000}")}" || echo '{"ip":"","ms":0}'
 }
+mutate() { # run a UCI edit (reads JSON on stdin), then load it into the core.
+    # Subs are unchanged by a node/chain/group edit, so regen OFFLINE (disk cache,
+    # no ~25s GitHub refetch); the marker makes both apply's gen AND the restart's
+    # init-gen fast. Cleared afterwards so hourly/boot still refresh from network.
+    local out; out=$(python3 "$ETC/edit.py" "$1")
+    if echo "$out" | grep -q '"ok": true'; then
+        touch /tmp/oxid/offline
+        apply >/dev/null 2>&1
+        rm -f /tmp/oxid/offline
+        echo "$out"
+    else
+        echo "$out"; return 1
+    fi
+}
 case "$1" in
     stage)   [ "$(uci -q get oxid.main.hourly)" = "0" ] && { echo "hourly disabled"; exit 0; }; stage ;;
+    config)  python3 "$ETC/edit.py" dump ;;   # typed model as JSON (manager read side)
+    tags)    python3 "$ETC/edit.py" tags ;;   # testable outbound tree (Test page)
+    delay)   delay "$2" "$3" ;;               # latency of <tag> to <url> via clash-api
+    sub-add|sub-del|sub-toggle|node-set|node-del|group-set|group-del|chain-set|chain-del)
+        mutate "$1" ;;                          # JSON body on stdin -> edit + apply
     stage!)  stage ;;                       # force stage regardless of hourly flag
     apply)   apply ;;
     restart) /etc/init.d/oxid restart; echo restarted ;;
@@ -155,5 +205,5 @@ case "$1" in
         if ! python3 -c "import json,sys;o=json.load(open('$STATIC/$2.json'));sys.exit(0 if o.get('tag') and o.get('type') else 1)" 2>/dev/null; then
             rm -f "$STATIC/$2.json"; echo "ERR JSON must have tag+type"; exit 1; fi
         if stage | grep -q staged; then echo "added $2"; else rm -f "$STATIC/$2.json"; stage >/dev/null; echo "ERR node rejected by sing-box; removed"; exit 1; fi ;;
-    *) echo "usage: oxid {stage|apply|restart|switch <tag>|status|watchdog|self-update|self-update-apply|static-del <n>|awg-import <n>|static-add <n>}" ;;
+    *) echo "usage: oxid {stage|apply|restart|switch <tag>|status|config|watchdog|self-update|self-update-apply|static-del <n>|awg-import <n>|static-add <n>|{sub,node,group,chain}-* (JSON on stdin)}" ;;
 esac

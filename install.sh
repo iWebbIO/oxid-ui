@@ -41,7 +41,7 @@ mkdir -p /etc/oxid /etc/init.d
 cp -a "$HERE/files/etc/oxid/." /etc/oxid/
 cp -f "$HERE/files/etc/init.d/oxid" /etc/init.d/oxid
 cp -a "$HERE/files/usr/." /usr/
-chmod 755 /etc/init.d/oxid /etc/oxid/gen.py /etc/oxid/oxid \
+chmod 755 /etc/init.d/oxid /etc/oxid/gen.py /etc/oxid/oxid /etc/oxid/edit.py \
 	/etc/oxid/awg2singbox.py /etc/oxid/oxid-update.sh 2>/dev/null || true
 rm -f /etc/oxid/static/amnezia.json.example.installed
 ln -sf /etc/oxid/oxid /usr/bin/oxid   # global CLI: `oxid status`, `oxid switch <tag>`, `oxid self-update`

@@ -22,8 +22,14 @@ start_service() {
     procd_set_param stderr 1
     procd_set_param limits nofile="65535 65535"
     procd_close_instance
-    # once the network is really up, pull fresh subs into RAM without a restart
-    ( sleep 90; [ "$(uci -q get oxid.main.hourly)" != "0" ] && /etc/oxid/oxid 'stage!' ) >/dev/null 2>&1 &
+    # once the network is up, pull fresh subs into RAM without a restart — but ONLY
+    # when hourly refresh is enabled. Gate BEFORE the sleep (so an opt-out restart
+    # spawns nothing) and fully detach (</dev/null) so it never pins a caller's
+    # SSH/exec channel open for 90s. Every apply restarts the core, so this must
+    # not linger.
+    if [ "$(uci -q get oxid.main.hourly)" != "0" ]; then
+        ( sleep 90; /etc/oxid/oxid 'stage!' ) </dev/null >/dev/null 2>&1 &
+    fi
 }
 
 reload_service() {
