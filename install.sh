@@ -23,7 +23,8 @@ cp -a "$HERE/files/etc/init.d" "$HERE/files/etc/singbox-sub" /etc/ 2>/dev/null |
 	mkdir -p /etc/singbox-sub; cp -a "$HERE/files/etc/singbox-sub/." /etc/singbox-sub/
 	cp -a "$HERE/files/etc/init.d/singbox-sub" /etc/init.d/singbox-sub; }
 cp -a "$HERE/files/usr/." /usr/
-chmod 755 /etc/init.d/singbox-sub /etc/singbox-sub/gen.py /etc/singbox-sub/ctl.sh /etc/singbox-sub/awg2singbox.py
+chmod 755 /etc/init.d/singbox-sub /etc/singbox-sub/gen.py /etc/singbox-sub/ctl.sh \
+	/etc/singbox-sub/awg2singbox.py /etc/singbox-sub/oxid-update.sh 2>/dev/null || true
 rm -f /etc/singbox-sub/static/amnezia.json.example.installed
 
 # ---- UCI config: keep existing, install default only if absent ----
@@ -77,9 +78,16 @@ mv "$CRON.new" "$CRON"; chmod 600 "$CRON"
 /etc/init.d/cron restart >/dev/null 2>&1 || true
 
 # ---- enable + start ----
-say "starting service"
+# OXID_NO_RESTART=1 (used by self-update): install files + stage a fresh RAM config
+# but DON'T restart the core, so live connections aren't dropped (applies on reboot).
 /etc/init.d/singbox-sub enable
-/etc/init.d/singbox-sub restart
+if [ "${OXID_NO_RESTART:-0}" = "1" ]; then
+	say "staging config (no core restart)"
+	/etc/singbox-sub/ctl.sh 'stage!' >/dev/null 2>&1 || true
+else
+	say "starting service"
+	/etc/init.d/singbox-sub restart
+fi
 
 # ---- refresh LuCI ----
 rm -f /tmp/luci-*cache* 2>/dev/null || true

@@ -100,6 +100,8 @@ case "$1" in
     switch)  switch "$2" ;;
     watchdog) watchdog ;;
     status)  status ;;
+    self-update)        "$ETC/oxid-update.sh" ;;          # update panel from GitHub, no core restart
+    self-update-apply)  "$ETC/oxid-update.sh" --apply ;;  # update + restart core (the button's arrow)
     static-del)  rm -f "$STATIC/$2.json" && stage; echo "deleted $2" ;;
     awg-import)  # awg-import <tag>  (wg-quick on stdin)
         mkdir -p "$STATIC"
@@ -111,5 +113,5 @@ case "$1" in
         if ! python3 -c "import json,sys;o=json.load(open('$STATIC/$2.json'));sys.exit(0 if o.get('tag') and o.get('type') else 1)" 2>/dev/null; then
             rm -f "$STATIC/$2.json"; echo "ERR JSON must have tag+type"; exit 1; fi
         if stage | grep -q staged; then echo "added $2"; else rm -f "$STATIC/$2.json"; stage >/dev/null; echo "ERR node rejected by sing-box; removed"; exit 1; fi ;;
-    *) echo "usage: ctl.sh {stage|apply|restart|switch <tag>|status|static-del <n>|awg-import <n>|static-add <n>}" ;;
+    *) echo "usage: ctl.sh {stage|apply|restart|switch <tag>|status|watchdog|self-update|self-update-apply|static-del <n>|awg-import <n>|static-add <n>}" ;;
 esac

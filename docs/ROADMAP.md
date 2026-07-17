@@ -319,7 +319,21 @@ Maturity = one name. Migrate:
 
 ---
 
-## 11. Packaging & distribution
+## 11. Packaging, distribution & self-update
+
+**The router runs the package, nothing hand-placed.** Everything on the box comes from
+`install.sh` (which lays down `files/`), so the router state always equals the repo. No
+manual file edits on the device — change the repo, update, done.
+
+**Self-update from GitHub, through the proxy.** `oxid-update.sh` fetches the latest
+package tarball from GitHub **via the local SOCKS** (falling back to direct), then re-runs
+`install.sh`. Because it goes through the tunnel, updates work even where GitHub is
+blocked. The panel exposes it as a split **Update** button: the main button updates the
+panel with **no core restart** (no disconnect; `OXID_NO_RESTART=1` → staged, applies on
+reboot), and the **▸ arrow** does "Update & apply" (also reloads the core). CLI:
+`ctl.sh self-update` / `self-update-apply`.
+
+
 
 Turn the tarball into real OpenWrt packages so install/update/remove is clean:
 - `oxid` — core: `oxid-gen`, `oxid` CLI, rpcd backend, init, cron, uci-defaults, parsers.

@@ -34,6 +34,13 @@ function act_do()
 		out = util.exec(CTL .. " stage!")
 	elseif a == "restart" then
 		out = util.exec(CTL .. " restart")
+	elseif a == "self-update" then
+		-- run detached: self-update reinstalls this very controller mid-request
+		util.exec("(" .. CTL .. " self-update) >/tmp/singbox-sub/update.log 2>&1 &")
+		out = "Updating OXID from GitHub (panel only, no reconnect). Reloading shortly…"
+	elseif a == "self-update-apply" then
+		util.exec("(" .. CTL .. " self-update-apply) >/tmp/singbox-sub/update.log 2>&1 &")
+		out = "Updating OXID from GitHub + applying. Core reconnects; reloading shortly…"
 	elseif a == "static-del" then
 		out = util.exec(CTL .. " static-del " .. sq(arg))
 	elseif a == "awg-import" or a == "static-add" then

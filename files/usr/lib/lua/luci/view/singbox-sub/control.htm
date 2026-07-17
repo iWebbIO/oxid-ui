@@ -12,6 +12,9 @@
 .sbx-table{width:100%;border-collapse:collapse;font-size:13px}
 .sbx-table td,.sbx-table th{padding:4px 6px;border-bottom:1px solid rgba(128,128,128,.15);text-align:left}
 .sbx-muted{opacity:.65;font-size:12px}
+.sbx-split{display:inline-flex;align-items:stretch}
+.sbx-split .sbx-btn{margin:0}
+.sbx-split .sbx-arrow{border-left:1px solid rgba(255,255,255,.35);padding:0 9px;font-size:11px}
 textarea.sbx-ta{width:100%;min-height:120px;font-family:monospace;font-size:12px}
 #sbx-msg{margin:8px 0;font-size:13px;min-height:18px}
 </style>
@@ -30,6 +33,11 @@ textarea.sbx-ta{width:100%;min-height:120px;font-family:monospace;font-size:12px
       <button class="cbi-button cbi-button-reload sbx-btn" onclick="sbxDo('apply','',this)">Apply (reload core)</button>
       <button class="cbi-button cbi-button-reset sbx-btn" onclick="sbxDo('restart','',this)">Restart</button>
       <a id="sbx-dash" class="cbi-button cbi-button-action" target="_blank">Open dashboard ↗</a>
+      <span class="sbx-split" title="Update OXID from GitHub, through the proxy">
+        <button class="cbi-button cbi-button-positive sbx-btn" onclick="sbxUpdate(false,this)">⟳ Update</button>
+        <button class="cbi-button cbi-button-positive sbx-btn sbx-arrow" onclick="sbxUpdate(true,this)"
+                title="Update &amp; apply (also reloads the core)">▸</button>
+      </span>
     </div>
   </div>
 
@@ -91,6 +99,19 @@ function sbxDo(act, arg, btn){
 function sbxSwitch(){
   var v=document.getElementById('sbx-sel').value; if(!v) return;
   sbxDo('switch', v, null);
+}
+
+function sbxUpdate(apply, btn){
+  var q = apply ? 'Update OXID from GitHub and reload the core (brief reconnect)?'
+                : 'Update the OXID panel from GitHub? (no reconnect)';
+  if(!confirm(q)) return;
+  if(btn){ btn.disabled=true; }
+  sbxMsg('Updating from GitHub via the proxy…');
+  sbxPost({act: apply?'self-update-apply':'self-update', arg:''}).then(function(j){
+    sbxMsg((j.out||'update started').trim());
+    // install.sh restarts rpcd/uhttpd at the end -> reload to pick up the new panel
+    setTimeout(function(){ location.reload(); }, apply ? 16000 : 12000);
+  }).catch(function(e){ sbxMsg('Error: '+e, true); if(btn){ btn.disabled=false; } });
 }
 
 function sbxImport(act, nameId, bodyId){
