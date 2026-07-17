@@ -46,9 +46,9 @@ Static nodes are loaded from `static/*.json` and routed by type: `wireguard`/`ta
 
 ## Lifecycle
 
-- **stage** (`ctl.sh stage` / hourly cron) — regenerate `config.json` in RAM and validate; **no restart**, so nothing disconnects. Fresh nodes are ready for the next switch/apply/reboot.
+- **stage** (`oxid stage` / hourly cron) — regenerate `config.json` in RAM and validate; **no restart**, so nothing disconnects. Fresh nodes are ready for the next switch/apply/reboot.
 - **switch** (GUI / clash API) — change the `PROXY` selector live; instant, no restart. Persists to UCI `active`.
-- **apply** (GUI save / `ctl.sh apply`) — regenerate, validate, restart the core, re-assert `active`.
+- **apply** (GUI save / `oxid apply`) — regenerate, validate, restart the core, re-assert `active`.
 - **watchdog** (cron) — probe the active outbound via the clash API; keep the main preferred, fail over to a healthy subscription if it dies, restore when it recovers.
 - **boot** — the init script regenerates in RAM; if generation fails, it falls back to `config.last`; 90s later it stages fresh subscriptions once the network is up.
 
