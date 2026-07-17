@@ -19,9 +19,9 @@ done
 
 # ---- copy files (everything except the UCI default config, handled below) ----
 say "installing files"
-cp -a "$HERE/files/etc/init.d" "$HERE/files/etc/singbox-sub" /etc/ 2>/dev/null || {
-	mkdir -p /etc/singbox-sub; cp -a "$HERE/files/etc/singbox-sub/." /etc/singbox-sub/
-	cp -a "$HERE/files/etc/init.d/singbox-sub" /etc/init.d/singbox-sub; }
+mkdir -p /etc/singbox-sub /etc/init.d
+cp -a "$HERE/files/etc/singbox-sub/." /etc/singbox-sub/
+cp -f "$HERE/files/etc/init.d/singbox-sub" /etc/init.d/singbox-sub
 cp -a "$HERE/files/usr/." /usr/
 chmod 755 /etc/init.d/singbox-sub /etc/singbox-sub/gen.py /etc/singbox-sub/ctl.sh \
 	/etc/singbox-sub/awg2singbox.py /etc/singbox-sub/oxid-update.sh 2>/dev/null || true
