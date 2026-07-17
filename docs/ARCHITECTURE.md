@@ -21,7 +21,7 @@ subscriptions (GitHub/URLs)                 static nodes (disk)
 |---|---|---|
 | `/etc/config/oxid` | flash (UCI) | settings + subscription list (small, static) |
 | `/etc/oxid/gen.py` | flash | generator + subscription parser |
-| `/etc/oxid/ctl.sh` | flash | control surface (stage/apply/switch/status/watchdog/…) |
+| `/etc/oxid/oxid` | flash | control surface (stage/apply/switch/status/watchdog/…) |
 | `/etc/oxid/awg2singbox.py` | flash | wg-quick → sing-box endpoint converter |
 | `/etc/oxid/static/*.json` | flash | static nodes (AmneziaWG, etc.) |
 | `/etc/oxid/lastgood/*.json` | flash | last-good per-subscription cache (offline fallback) |
