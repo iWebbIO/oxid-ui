@@ -18,39 +18,59 @@ def log(*a): print("[gen]", *a, file=sys.stderr)
 
 os.makedirs(RUN, exist_ok=True)   # tmpfs is empty after reboot; ensure it exists early
 
-def read_uci():
-    """Parse `uci show singbox-sub` -> (main_dict, [subscription_dicts]).
-    Returns ({}, []) if the UCI config is absent."""
+_UCI_CACHE=None
+def uci_model():
+    """Parse `uci -q show singbox-sub` into {section_id: {_type, opt: value...}}.
+    List options (member/hop) become Python lists. Cached per process."""
+    global _UCI_CACHE
+    if _UCI_CACHE is not None: return _UCI_CACHE
+    secs={}
     try:
         out=subprocess.check_output(["uci","-q","show","singbox-sub"],
                                     stderr=subprocess.DEVNULL).decode("utf-8","replace")
     except Exception:
-        return {},[]
-    main={}; subs={}
+        _UCI_CACHE=secs; return secs
     for ln in out.splitlines():
-        if "=" not in ln: continue
-        k,v=ln.split("=",1); v=v.strip().strip("'")
-        if k.startswith("singbox-sub.main."):
-            main[k.split(".",2)[2]]=v
+        m=re.match(r"^singbox-sub\.([^.=]+)(?:\.([^=]+))?=(.*)$", ln)
+        if not m: continue
+        sec,opt,val=m.group(1),m.group(2),m.group(3)
+        d=secs.setdefault(sec,{})
+        if opt is None:
+            d["_type"]=val.strip().strip("'")
         else:
-            m=re.match(r"singbox-sub\.@subscription\[(\d+)\]\.(\w+)",k)
-            if m: subs.setdefault(int(m.group(1)),{})[m.group(2)]=v
-    return main,[subs[i] for i in sorted(subs)]
+            vals=re.findall(r"'([^']*)'", val)
+            nv=vals if len(vals)>1 else (vals[0] if vals else val.strip())
+            if opt in d:  # repeated option (list rendered across lines) -> accumulate
+                cur=d[opt] if isinstance(d[opt],list) else [d[opt]]
+                d[opt]=cur+(nv if isinstance(nv,list) else [nv])
+            else:
+                d[opt]=nv
+    _UCI_CACHE=secs; return secs
+
+def by_type(t):
+    """Sections of a given type, keyed by section id (insertion order preserved)."""
+    return {k:v for k,v in uci_model().items() if v.get("_type")==t}
+
+def aslist(x):
+    return x if isinstance(x,list) else ([x] if x else [])
 
 def load_settings():
     d = {"controller":"0.0.0.0:9090","secret":"","socks_port":7890,
          "healthcheck_url":"https://www.gstatic.com/generate_204",
-         "interval":"3m0s","tolerance":100,"active":"","max_nodes":120}
-    main,_=read_uci()
+         "interval":"3m0s","tolerance":100,"active":"","max_nodes":120,
+         "stable_switch":"1"}
+    main=uci_model().get("main",{})
     for k in ("controller","secret","socks_port","healthcheck_url",
-              "interval","max_nodes","active"):
+              "interval","max_nodes","active","stable_switch","tolerance"):
         if main.get(k): d[k]=main[k]
     return d
 
 def load_subs():
-    _,sub_list=read_uci()
-    return [(s["name"],s["url"]) for s in sub_list
-            if s.get("enabled","1")=="1" and s.get("name") and s.get("url")]
+    subs=[]
+    for v in by_type("subscription").values():
+        if v.get("enabled","1")=="1" and v.get("name") and v.get("url"):
+            subs.append((v["name"], v["url"]))
+    return subs
 
 def strip_jsonc(s):
     s=re.sub(r'^\s*//.*$','',s,flags=re.M)
@@ -304,39 +324,134 @@ def load_static():
             except Exception as e: log("static",fn,"skip:",e)
     return eps,obs
 
+def stable(d, st):
+    # keep live connections when a selector/urltest changes its pick
+    if str(st.get("stable_switch","1"))!="0":
+        d["interrupt_exist_connections"]=False
+    return d
+
+def emit_node(nid, n):
+    """Typed manual node -> sing-box outbound (tag node:<id>). A node may carry a
+    share-link (any protocol) or typed fields for the common exit types."""
+    tag="node:"+nid
+    link=n.get("link")
+    if link:
+        o=parse_link(link)
+        if o: o=dict(o); o["tag"]=tag; return sanitize(o)
+        log("node",nid,"bad link"); return None
+    typ=(n.get("type") or "socks").lower()
+    server=n.get("server")
+    try: port=int(n.get("port") or 0)
+    except ValueError: port=0
+    if not server or not port: log("node",nid,"missing server/port"); return None
+    if typ=="socks":
+        o={"type":"socks","tag":tag,"server":server,"server_port":port,"version":"5"}
+        if n.get("username"): o["username"]=n["username"]
+        if n.get("password"): o["password"]=n["password"]
+    elif typ=="http":
+        o={"type":"http","tag":tag,"server":server,"server_port":port}
+        if n.get("username"): o["username"]=n["username"]
+        if n.get("password"): o["password"]=n["password"]
+        if n.get("tls")=="1": o["tls"]={"enabled":True,"server_name":n.get("sni") or server}
+    elif typ in ("shadowsocks","ss"):
+        o={"type":"shadowsocks","tag":tag,"server":server,"server_port":port,
+           "method":n.get("method") or "aes-128-gcm","password":n.get("password") or ""}
+    else:
+        log("node",nid,"unsupported typed protocol",typ,"- use a share-link"); return None
+    return o
+
+def resolve_member(m, subnames):
+    """A UI member ref (sub:/node:/group:/chain:/static: or a bare name) -> config tag."""
+    m=(m or "").strip()
+    if m in ("direct","block"): return m
+    if ":" in m:
+        pre,rest=m.split(":",1)
+        return {"sub":"sub:"+rest,"node":"node:"+rest,"group":"grp:"+rest,
+                "chain":"chain:"+rest,"static":rest}.get(pre, m)
+    return ("sub:"+m) if m in subnames else m
+
+def emit_group(gid, g, st, subnames):
+    kind=(g.get("kind") or "urltest").lower()
+    members=[resolve_member(x,subnames) for x in aslist(g.get("member"))]
+    members=[x for x in members if x] or ["direct"]
+    tag="grp:"+gid
+    if kind in ("select","selector","manual"):
+        return stable({"type":"selector","tag":tag,"outbounds":members,"default":members[0]}, st)
+    return stable({"type":"urltest","tag":tag,"outbounds":members,
+                   "url":g.get("test_url") or st["healthcheck_url"],
+                   "interval":g.get("interval") or st["interval"],
+                   "tolerance":int(g.get("tolerance") or st["tolerance"]),
+                   "idle_timeout":"30m0s"}, st)
+
+def emit_chain(cid, c, node_out, subnames, st):
+    """Proxy chain: hop[0]=entry (any selectable), hop[1..]=proxy nodes; each hop
+    dials THROUGH the previous one, so the LAST hop is the exit. Tag chain:<id>."""
+    hops=aslist(c.get("hop"))
+    if not hops: return None,[]
+    prev=resolve_member(hops[0], subnames); extra=[]
+    for i,h in enumerate(hops[1:],1):
+        if not h.startswith("node:"):
+            log("chain",cid,"hop must be a node (only the entry can be a sub/group):",h); return None,[]
+        base=node_out.get(h.split(":",1)[1])
+        if not base: log("chain",cid,"unknown node",h); return None,[]
+        clone=dict(base); clone["detour"]=prev
+        clone["tag"]="chain:"+cid if i==len(hops)-1 else f"chain:{cid}:h{i}"
+        extra.append(clone); prev=clone["tag"]
+    if len(hops)==1:  # single hop: wrap so chain:<id> is a valid selectable tag
+        extra.append(stable({"type":"selector","tag":"chain:"+cid,"outbounds":[prev],"default":prev}, st))
+    return prev,extra
+
 def build():
     st=load_settings(); subs=load_subs()
     static_eps,static_obs=load_static()
-    ep_tags=[x["tag"] for x in static_eps+static_obs]
     maxn=int(st.get("max_nodes",120) or 0)
-    all_nodes=[]; groups=[]; sub_tags=[]; report=[]
+    subnames={n for n,_ in subs}
+    report=[]
+
+    # 1) subscriptions -> per-sub urltest group + their nodes
+    all_nodes=[]; sub_groups=[]; sub_tags=[]
     for name,url in subs:
         px,src=get_sub_proxies(name,url,maxn)
         node_tags=[]
         for o in px:
             o=dict(o); o["tag"]=f"{name}│{o['tag']}"   # namespace: name│origtag
             all_nodes.append(o); node_tags.append(o["tag"])
-        gtag=f"sub:{name}"; sub_tags.append(gtag)
+        gtag="sub:"+name; sub_tags.append(gtag)
         if node_tags:
-            groups.append({"type":"urltest","tag":gtag,"outbounds":node_tags,
+            sub_groups.append(stable({"type":"urltest","tag":gtag,"outbounds":node_tags,
                 "url":st["healthcheck_url"],"interval":st["interval"],
-                "tolerance":st["tolerance"],"idle_timeout":"30m0s"})
+                "tolerance":int(st["tolerance"]),"idle_timeout":"30m0s"}, st))
         else:
-            # empty sub still needs a valid outbound; point at direct so config stays valid
-            groups.append({"type":"selector","tag":gtag,"outbounds":["direct"]})
+            sub_groups.append({"type":"selector","tag":gtag,"outbounds":["direct"]})
         report.append(f"{name}:{len(node_tags)}({src})")
 
-    # active = the main/default outbound. Accepts a sub name (-> sub:<name>),
-    # a static endpoint tag (e.g. amnezia), a raw sub:<name>, or direct.
-    sub_names={n for n,_ in subs}
-    active=st.get("active") or st.get("default_sub") or (subs[0][0] if subs else "direct")
-    if active in sub_names:            default_tag="sub:"+active
-    elif active.startswith("sub:"):    default_tag=active
-    elif active in ep_tags or active=="direct": default_tag=active
-    else:                              default_tag=("sub:"+subs[0][0]) if subs else "direct"
-    top={"type":"selector","tag":"PROXY",
-         "outbounds":sub_tags+ep_tags+["direct"],
-         "default":default_tag}
+    # 2) typed manual nodes -> outbounds
+    node_out={}; node_obs=[]
+    for nid,n in by_type("node").items():
+        o=emit_node(nid,n)
+        if o: node_out[nid]=o; node_obs.append(o)
+
+    # 3) custom groups (balancers / manual selectors)
+    grp_obs=[emit_group(gid,g,st,subnames) for gid,g in by_type("group").items()]
+
+    # 4) chains (proxy chaining via detour; last hop = exit)
+    chain_obs=[]; chain_tags=[]
+    for cid,c in by_type("chain").items():
+        final,extra=emit_chain(cid,c,node_out,subnames,st)
+        if final: chain_obs+=extra; chain_tags.append("chain:"+cid)
+
+    ep_tags=[x["tag"] for x in static_eps+static_obs]
+    grp_tags=[g["tag"] for g in grp_obs]
+    node_sel=["node:"+nid for nid in node_out]
+    selectable=sub_tags+grp_tags+chain_tags+node_sel+ep_tags+["direct"]
+    valid=set(selectable)
+
+    # resolve the active/default outbound against everything selectable
+    active=st.get("active") or (subs[0][0] if subs else "direct")
+    default_tag=resolve_member(active, subnames)
+    if default_tag not in valid:
+        default_tag=("sub:"+active) if ("sub:"+active) in valid else (selectable[0] if selectable else "direct")
+    top=stable({"type":"selector","tag":"PROXY","outbounds":selectable,"default":default_tag}, st)
 
     cfg={
       "log":{"level":"warn","timestamp":True},
@@ -349,12 +464,15 @@ def build():
       "inbounds":[{"type":"mixed","tag":"mixed-in","listen":"127.0.0.1",
                    "listen_port":int(st["socks_port"])}],
       "endpoints":static_eps,
-      "outbounds":[top]+groups+all_nodes+static_obs+[
+      "outbounds":[top]+sub_groups+grp_obs+chain_obs+all_nodes+node_obs+static_obs+[
         {"type":"direct","tag":"direct"}],
       "route":{"final":"PROXY","auto_detect_interface":True,
                "default_domain_resolver":{"server":"local"},"rules":[]}
     }
-    if ep_tags: report.append("static["+",".join(ep_tags)+"]")
+    if node_obs:   report.append(f"nodes:{len(node_obs)}")
+    if grp_obs:    report.append(f"groups:{len(grp_obs)}")
+    if chain_tags: report.append("chains["+",".join(t.split(':',1)[1] for t in chain_tags)+"]")
+    if ep_tags:    report.append("static["+",".join(ep_tags)+"]")
     os.makedirs(RUN,exist_ok=True)
     open(CFG,"w").write(json.dumps(cfg,ensure_ascii=False,indent=1))
     log("built:", " ".join(report), "-> default",default_tag)
