@@ -1,285 +1,196 @@
 <%+header%>
+<%+oxid/theme%>
 <style>
-@font-face{
-  font-family:'OXID Wordmark';
-  src:url(data:font/woff2;base64,d09GMgABAAAAAAKYAAwAAAAABPgAAAJJAAQBBgAAAAAAAAAAAAAAAAAAAAAAAAAAGyAcMAZgAEwKgXiBYQE2AiQDFAsMAAQgBYJ6ByAbBATInoNNWZ4VwVN10sW1v2t1rSIevt+vnfv+W9GEWWbIDFm8upWA1yU0IiV6qZY6a8C4vLcHJVslrZJKbKpCXgQ39z9Ab22f76YWlXjvmBL57+iwgUcBnjVsTApx4fZeYAFt7XnqphARHwMbOQYLRbbSy8fNAnUjVBDm3X1DQZehK5BpU/SRRPF5WrkxVCglhdVkw7mwwTcKqUOMBKzxrXEI43AFKAAIAFhZdw/ACuZFZoX/Nqm5gFgCCEgjxCXABDISCvQgCfQgmwF1VUkyz0uAyK7wYdysCQMRAAAlUEcZs+AKQAYkIYkag8zns18u8XDBrFNYN9eExytmncxKIDMpD1dXhMfra9bT5R86XjrRWMeIWJewrqKY0ZHMmGhWVAxrfXlxuqdHNVOzK7ODg6PDTU1aMtTZ0InMrxXxCiYrNdFh7ZmZwlNNSrIrQlAdHFyXkQGgGhmJBSAfnSTYDirIYerRNnzv3QEQyEGtGnlQT+DZvtEL0iPw3dE7BvAnNT/8+/97qO+QiaAigeD8Rt08Ub/mIw7mjVdInwgjp5CDbexTQUDJM9iuUbF1DBXnoJBQsYskMgO8ACZhQBtJ2l5JYdpOPuekpO5/XdlA0DGnQKEqxbJkyFRKjTFDdakJlSmNmkBioPF8JRFVUMiWJgU7OSlTKlOB4oxp2lGqFGDQmgEDGbLS7jLJ9KUokMdgNdIZFPOlKlaFkD3lWnt5qEwbwfhvGcrkSlLMSyh3AWyolen3B1P6DBkylcxSCKkrejbJpdddxgAAAA==) format('woff2');
-  font-weight:100;font-display:swap;
-}
-.oxid-app{
-  --bg:oklch(0.165 0.006 55);--surface:oklch(0.205 0.008 55);--surface-2:oklch(0.245 0.010 55);
-  --line:oklch(1 0 0 / 0.09);--line-strong:oklch(1 0 0 / 0.15);
-  --ink:oklch(0.96 0.004 75);--muted:oklch(0.74 0.012 65);--faint:oklch(0.60 0.010 65);
-  --ember:oklch(0.705 0.165 48);--ember-ink:oklch(0.20 0.05 48);--ember-soft:oklch(0.705 0.165 48 / 0.13);
-  --sub:oklch(0.72 0.15 235);--node:oklch(0.78 0.15 155);--grp:oklch(0.72 0.16 300);
-  --fast:oklch(0.78 0.15 155);--good:oklch(0.82 0.15 130);--ok:oklch(0.83 0.15 90);
-  --slow:oklch(0.75 0.16 55);--bad:oklch(0.66 0.19 25);
-  --r:14px;--r-sm:10px;--ease:cubic-bezier(.22,1,.36,1);
-  color-scheme:dark;background:
-    radial-gradient(120% 90% at 92% -10%, oklch(0.705 0.165 48 / 0.10), transparent 55%),
-    radial-gradient(90% 70% at -10% 0%, oklch(0.55 0.09 260 / 0.08), transparent 50%),
-    var(--bg);
-  color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  letter-spacing:-0.006em;border-radius:var(--r);padding:clamp(16px,2.4vw,26px);margin:-4px 0 0;
-}
-.oxid-app *{box-sizing:border-box}
-.oxid-app .top{display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap}
-.oxid-app .brand{display:flex;align-items:baseline;gap:12px;line-height:1}
-.oxid-app .wordmark{font-family:'OXID Wordmark',system-ui;font-weight:100;font-size:34px;letter-spacing:0.16em;padding-left:0.16em}
-.oxid-app .crumb{color:var(--faint);font-size:13px}
-.oxid-app .spacer{flex:1}
-/* target bar */
-.oxid-app .target{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
-  background:oklch(0.205 0.008 55 / 0.86);backdrop-filter:blur(10px);border:1px solid var(--line);
-  border-radius:var(--r);padding:13px 16px;margin-bottom:16px}
-.oxid-app .target .lbl{font-size:11.5px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--faint)}
-.oxid-app .presets{display:inline-flex;gap:6px;flex-wrap:wrap}
-.oxid-app .presets button{appearance:none;cursor:pointer;font:inherit;font-size:13px;font-weight:600;padding:7px 14px;border-radius:999px;background:var(--surface-2);color:var(--muted);border:1px solid var(--line);transition:all .16s var(--ease)}
-.oxid-app .presets button:hover{color:var(--ink);border-color:var(--line-strong)}
-.oxid-app .presets button[aria-pressed=true]{background:var(--ember);color:var(--ember-ink);border-color:transparent}
-.oxid-app .presets button:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
-.oxid-app #tg-custom{display:none;min-width:230px;flex:1;font:inherit;font-size:13px;color:var(--ink);background:var(--bg);border:1px solid var(--line-strong);border-radius:var(--r-sm);padding:8px 11px}
-.oxid-app #tg-custom:focus{outline:none;border-color:var(--ember)}
+.oxid-app .target{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;
+  background:oklch(0.206 0.007 55 / 0.9);backdrop-filter:blur(10px);border:1px solid var(--line);
+  border-radius:var(--r);padding:12px var(--s4);margin-bottom:var(--s4)}
+.oxid-app .target .lbl{font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--faint)}
+.oxid-app #tg-custom{display:none;min-width:220px;flex:1}
 .oxid-app #tg-custom.on{display:block}
-.oxid-app .btn{appearance:none;cursor:pointer;font:inherit;font-size:13px;font-weight:600;padding:8px 13px;border-radius:var(--r-sm);background:var(--surface-2);color:var(--ink);border:1px solid var(--line-strong);transition:all .16s var(--ease);display:inline-flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap}
-.oxid-app .btn:hover{border-color:var(--faint);transform:translateY(-1px)}
-.oxid-app .btn:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
-.oxid-app .btn[disabled]{opacity:.5;cursor:default;transform:none}
-.oxid-app .btn.sm{padding:5px 10px;font-size:12px}
-.oxid-app .btn.ghost{background:transparent}
-.oxid-app .btn.primary{background:var(--ember);color:var(--ember-ink);border-color:transparent}
-.oxid-app .btn.primary:hover{background:oklch(0.74 0.17 48)}
-/* groups */
-.oxid-app .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;margin-bottom:14px}
-.oxid-app .ghead{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
-.oxid-app .ghead h2{font-size:12px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--faint);margin:0;display:flex;align-items:center;gap:8px}
-.oxid-app .ghead .kd{width:8px;height:8px;border-radius:50%}
-.oxid-app .kd.k-sub{background:var(--sub)}.oxid-app .kd.k-node{background:var(--node)}.oxid-app .kd.k-grp{background:var(--grp)}.oxid-app .kd.k-static{background:var(--ember)}
-.oxid-app .cnt{font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums}
-.oxid-app .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+.oxid-app .legend{display:flex;gap:var(--s3);flex-wrap:wrap;align-items:center;font-size:11px;color:var(--faint);margin:2px 2px var(--s4)}
+.oxid-app .legend .sw{display:inline-flex;align-items:center;gap:5px}
+.oxid-app .legend .sw i{width:8px;height:8px;border-radius:50%}
+.oxid-app .legend .note{margin-left:auto;display:inline-flex;align-items:center;gap:6px}
+.oxid-app .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(184px,1fr));gap:var(--s2)}
 .oxid-app .pill{appearance:none;cursor:pointer;font:inherit;text-align:left;display:flex;align-items:center;gap:10px;
-  padding:9px 12px;border-radius:var(--r-sm);background:var(--surface-2);border:1px solid var(--line);transition:all .14s var(--ease)}
-.oxid-app .pill:hover{border-color:var(--line-strong);transform:translateY(-1px)}
-.oxid-app .pill:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
-.oxid-app .pill .nm{flex:1;min-width:0;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.oxid-app .pill .val{font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--faint);min-width:44px;text-align:right}
-.oxid-app .pill.testing{border-color:var(--ember)}
-.oxid-app .pill.testing .val{color:var(--ember)}
-.oxid-app .pill .dotm{width:8px;height:8px;border-radius:50%;background:var(--line-strong);flex:0 0 auto}
-.oxid-app .pill.r-fast .dotm{background:var(--fast)}.oxid-app .pill.r-fast .val{color:var(--fast)}
-.oxid-app .pill.r-good .dotm{background:var(--good)}.oxid-app .pill.r-good .val{color:var(--good)}
-.oxid-app .pill.r-ok .dotm{background:var(--ok)}.oxid-app .pill.r-ok .val{color:var(--ok)}
-.oxid-app .pill.r-slow .dotm{background:var(--slow)}.oxid-app .pill.r-slow .val{color:var(--slow)}
-.oxid-app .pill.r-bad .dotm{background:var(--bad)}.oxid-app .pill.r-bad .val{color:var(--bad)}
+  padding:9px 12px;border-radius:var(--r-sm);background:var(--surface-2);border:1px solid var(--line);
+  transition:border-color var(--dur) var(--ease),transform var(--dur) var(--ease)}
+.oxid-app .pill:hover{border-color:var(--line-2);transform:translateY(-1px)}
+.oxid-app .pill .nm{flex:1;min-width:0;font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.oxid-app .pill .val{font-size:12px;color:var(--faint);min-width:42px;text-align:right}
+.oxid-app .pill .dotm{width:8px;height:8px;border-radius:50%;background:var(--line-2);flex:0 0 auto}
+.oxid-app .pill.testing{border-color:var(--accent)}
+.oxid-app .pill.r-fast .dotm{background:var(--l-fast)}.oxid-app .pill.r-good .dotm{background:var(--l-good)}
+.oxid-app .pill.r-ok .dotm{background:var(--l-ok)}.oxid-app .pill.r-slow .dotm{background:var(--l-slow)}
+.oxid-app .pill.r-bad .dotm{background:var(--l-bad)}
 .oxid-app .subgrp{border:1px solid var(--line);border-radius:var(--r-sm);margin-bottom:10px;overflow:hidden}
 .oxid-app .subgrp:last-child{margin-bottom:0}
-.oxid-app .subhead{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--surface-2);cursor:pointer}
-.oxid-app .subhead .nm{font-weight:600;font-size:14px;flex:1}
-.oxid-app .subhead .chev{color:var(--faint);transition:transform .18s var(--ease)}
-.oxid-app .subgrp.open .subhead .chev{transform:rotate(90deg)}
-.oxid-app .subbody{display:none;padding:12px 14px}
+.oxid-app .subhead{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface-2);cursor:pointer}
+.oxid-app .subhead .exp{display:inline-flex;color:var(--faint);padding:2px;border-radius:4px;transition:transform var(--dur) var(--ease)}
+.oxid-app .subgrp.open .subhead .exp{transform:rotate(90deg)}
+.oxid-app .subhead .nm{font-weight:600;font-size:13.5px;flex:1}
+.oxid-app .subhead .val{font-size:12.5px;font-weight:700;color:var(--faint);font-variant-numeric:tabular-nums;min-width:52px;text-align:right}
+.oxid-app .subbody{display:none;padding:12px 14px;background:oklch(0.19 0.006 55)}
 .oxid-app .subgrp.open .subbody{display:block}
-.oxid-app .empty{color:var(--faint);font-size:13px;padding:6px 0}
-.oxid-app .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--faint);margin:2px 0 0}
-.oxid-app .legend span{display:inline-flex;align-items:center;gap:5px}.oxid-app .legend i{width:8px;height:8px;border-radius:50%}
-.oxid-app #ox-msg{min-height:18px;font-size:13px;color:var(--muted);margin:6px 2px 0}
-.oxid-app #ox-msg.err{color:var(--bad)}
-@media(prefers-reduced-motion:reduce){.oxid-app *{animation:none!important;transition:none!important}}
 </style>
 
 <div class="oxid-app">
   <header class="top">
-    <div class="brand"><span class="wordmark">OXID</span><span class="crumb">Test</span></div>
+    <div class="brand"><span class="wordmark">OXID</span><span class="tagline">Latency test</span></div>
     <span class="spacer"></span>
-    <a class="btn ghost sm" href="<%=url('admin','services','oxid','control')%>">← Dashboard</a>
-    <a class="btn ghost sm" href="<%=url('admin','services','oxid','manage')%>">Manage →</a>
+    <span class="pill" id="ox-active"><span class="dot"></span><span id="ox-active-t">…</span></span>
   </header>
 
   <div class="target">
     <span class="lbl">Ping target</span>
-    <div class="presets" id="tg-presets"></div>
-    <input id="tg-custom" placeholder="https://your-endpoint/…" spellcheck="false" autocomplete="off">
+    <div class="seg" id="tg-presets"></div>
+    <input class="input" id="tg-custom" placeholder="https://your-endpoint/…" spellcheck="false" autocomplete="off">
     <span class="spacer"></span>
-    <button class="btn primary" id="tg-all" title="Measure every switchable config, one at a time">⚡ Test all configs</button>
-    <button class="btn ghost sm" id="tg-reload" title="Reload the config list">↻</button>
+    <button class="btn primary" id="tg-all"><svg class="ic"><use href="#i-bolt"/></svg>Test all configs</button>
+    <button class="btn ghost sm" id="tg-reload" title="Reload the config list"><svg class="ic"><use href="#i-refresh"/></svg></button>
   </div>
   <div class="legend">
-    <span><i style="background:var(--fast)"></i>&lt;100</span>
-    <span><i style="background:var(--good)"></i>&lt;200</span>
-    <span><i style="background:var(--ok)"></i>&lt;350</span>
-    <span><i style="background:var(--slow)"></i>&lt;600</span>
-    <span><i style="background:var(--bad)"></i>slow / down</span>
-    <span style="margin-left:auto">⚡ measures the real path (switches &amp; restores) · plain pills are a quick probe</span>
+    <span class="sw"><i style="background:var(--l-fast)"></i>&lt;100</span>
+    <span class="sw"><i style="background:var(--l-good)"></i>&lt;200</span>
+    <span class="sw"><i style="background:var(--l-ok)"></i>&lt;350</span>
+    <span class="sw"><i style="background:var(--l-slow)"></i>&lt;600</span>
+    <span class="sw"><i style="background:var(--l-bad)"></i>slow / down</span>
+    <span class="note"><svg class="ic"><use href="#i-bolt"/></svg>warm round-trip (routes &amp; restores) · node scan is a quick probe</span>
   </div>
 
-  <div id="ox-groups" style="margin-top:16px"></div>
-  <div id="ox-msg"></div>
+  <div id="ox-groups"></div>
+  <div class="msg" id="ox-msg"></div>
 </div>
 
 <script type="text/javascript">//<![CDATA[
 var OX_TAGS='<%=url("admin","services","oxid","tags")%>';
+var OX_STATUS='<%=url("admin","services","oxid","status")%>';
 var OX_DO='<%=url("admin","services","oxid","do")%>';
 var OX_TOKEN='<%=token%>';
 var T={}, PILLS={}, testingAll=false;
-var TARGETS=[
-  ['Google','https://www.gstatic.com/generate_204'],
+var TARGETS=[['Google','https://www.gstatic.com/generate_204'],
   ['Cloudflare','https://cp.cloudflare.com/generate_204'],
-  ['YouTube','https://www.youtube.com/generate_204'],
-  ['Custom','']
-];
+  ['YouTube','https://www.youtube.com/generate_204'],['Custom','']];
 var target=TARGETS[0][1];
 
 function el(id){return document.getElementById(id);}
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
-function msg(t,e){var m=el('ox-msg');m.textContent=t||'';m.className=e?'err':'';}
+function msg(t,e){var m=el('ox-msg');m.textContent=t||'';m.className='msg'+(e?' err':'');}
 function post(p){p.token=OX_TOKEN;
   var b=Object.keys(p).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(p[k]);}).join('&');
   return fetch(OX_DO,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:b,credentials:'same-origin'}).then(function(r){return r.json();});}
-
-function currentTarget(){
-  if(target==='') { var v=(el('tg-custom').value||'').trim(); return v||'https://www.gstatic.com/generate_204'; }
-  return target;
-}
+function currentTarget(){ if(target==='') {var v=(el('tg-custom').value||'').trim(); return v||TARGETS[0][1];} return target; }
 function rclass(ms){return ms<100?'r-fast':ms<200?'r-good':ms<350?'r-ok':ms<600?'r-slow':'r-bad';}
+function rcolor(ms){return ms<100?'var(--l-fast)':ms<200?'var(--l-good)':ms<350?'var(--l-ok)':ms<600?'var(--l-slow)':'var(--l-bad)';}
 
-function paint(tag,r){
-  var el2=PILLS[tag]; if(!el2) return; var v=el2.querySelector('.val');
-  if(r&&r.ms!=null&&!r.error){ el2.className='pill '+rclass(r.ms); v.textContent=r.ms+' ms'; }
-  else { el2.className='pill r-bad'; v.textContent='down'; }
-}
-// fast, best-effort: on-demand clash delay. Great for warm/reachable nodes; cold
-// idle nodes on a censored path may read "down" even when usable — that's what
-// measure() is for. Used to scan the many members inside a subscription.
-function probe(tag){
-  var el2=PILLS[tag]; if(!el2) return Promise.resolve();
-  el2.className='pill testing'; el2.querySelector('.val').textContent='···';
+// paint target may be a full .pill OR a bare .val span (subscription row) — handle both
+function valOf(e){return e.classList.contains('val')?e:e.querySelector('.val');}
+function setBusy(tag,txt){var e=PILLS[tag];if(!e)return;
+  if(e.classList.contains('pill'))e.className='pill testing';
+  var v=valOf(e);if(v){v.textContent=txt;v.style.color='var(--accent)';}}
+function paint(tag,r){var e=PILLS[tag];if(!e)return;var v=valOf(e);
+  if(r&&r.ms!=null&&!r.error){
+    if(e.classList.contains('pill'))e.className='pill '+rclass(r.ms);
+    if(v){v.textContent=r.ms+' ms';v.style.color=rcolor(r.ms);}
+  }else{
+    if(e.classList.contains('pill'))e.className='pill r-bad';
+    if(v){v.textContent='down';v.style.color='var(--l-bad)';}}}
+
+// fast best-effort clash probe (used to scan the many members inside a pool)
+function probe(tag){ if(!PILLS[tag]) return Promise.resolve(); setBusy(tag,'···');
   return post({act:'delay',arg:tag,body:currentTarget()}).then(function(j){
-    var r={}; try{r=JSON.parse((j.out||'').trim());}catch(e){}
-    paint(tag,r);
-  }).catch(function(){paint(tag,{error:1});});
-}
-// reliable: switch to <tag>, let it establish, time a real fetch through it,
-// restore. Slower (~5s) and one-at-a-time (it moves the live exit), but it's the
-// true latency of actually using this config. Used for switchable configs.
-function measure(tag){
-  var el2=PILLS[tag]; if(!el2) return Promise.resolve();
-  el2.className='pill testing'; el2.querySelector('.val').textContent='warming…';
+    var r={}; try{r=JSON.parse((j.out||'').trim());}catch(e){} paint(tag,r);
+  }).catch(function(){paint(tag,{error:1});}); }
+// reliable warm measure (route through it, time steady-state, restore)
+function measure(tag){ if(!PILLS[tag]) return Promise.resolve(); setBusy(tag,'warming…');
   return post({act:'measure',arg:tag,body:currentTarget()}).then(function(j){
-    var r={}; try{r=JSON.parse((j.out||'').trim());}catch(e){}
-    paint(tag,r);
-  }).catch(function(){paint(tag,{error:1});});
-}
-// measure a list one-at-a-time (they each move the live exit, can't run in parallel)
-function measureSeq(tags){
-  return tags.reduce(function(p,t){return p.then(function(){return measure(t);});},Promise.resolve());
-}
-// bounded-concurrency sweep
-function sweep(tags,conc){
-  conc=conc||5; var i=0,active=0;
-  return new Promise(function(res){
-    (function next(){
-      if(i>=tags.length&&active===0){res();return;}
-      while(active<conc&&i<tags.length){(function(t){active++;probe(t).then(function(){active--;next();});})(tags[i++]);}
-    })();
-  });
-}
-// the switchable configs (what you'd actually route through) — reliably measured.
-// NOT the hundreds of individual sub-members; scan those per-pool with "Scan nodes".
-function switchableTags(){
-  var out=[];
+    var r={}; try{r=JSON.parse((j.out||'').trim());}catch(e){} paint(tag,r);
+  }).catch(function(){paint(tag,{error:1});}); }
+function measureSeq(tags){return tags.reduce(function(p,t){return p.then(function(){return measure(t);});},Promise.resolve());}
+function sweep(tags,conc){conc=conc||5;var i=0,active=0;
+  return new Promise(function(res){(function next(){
+    if(i>=tags.length&&active===0){res();return;}
+    while(active<conc&&i<tags.length){(function(t){active++;probe(t).then(function(){active--;next();});})(tags[i++]);}
+  })();});}
+function switchableTags(){var out=[];
   (T.subscriptions||[]).forEach(function(s){out.push(s.tag);});
   (T.balancers||[]).forEach(function(b){out.push(b.tag);});
   (T.chains||[]).forEach(function(c){out.push(c.tag);});
   (T.nodes||[]).forEach(function(n){out.push(n.tag);});
   (T.tunnels||[]).forEach(function(t){out.push(t.tag);});
-  if(T.direct) out.push('direct');
-  return out;
-}
+  if(T.direct) out.push('direct'); return out;}
 
-function pill(tag,label,mode){
-  var b=document.createElement('button');b.className='pill';b.type='button';
-  b.title=mode==='measure'?'Click: switch to this, measure real latency, restore':'Click: quick delay probe';
+function ic(id){return '<svg class="ic"><use href="#'+id+'"/></svg>';}
+function pill(tag,label,mode){var b=document.createElement('button');b.className='pill';b.type='button';
+  b.title=mode==='measure'?'Route through this, measure warm latency, restore':'Quick probe (best-effort)';
   b.innerHTML='<span class="dotm"></span><span class="nm">'+esc(label)+'</span><span class="val">–</span>';
   b.onclick=function(){(mode==='measure'?measure:probe)(tag);};
-  PILLS[tag]=b; return b;
-}
+  PILLS[tag]=b; return b;}
 function gridOf(members,mode){var g=document.createElement('div');g.className='grid';
   members.forEach(function(m){g.appendChild(pill(m.tag,m.label,mode));});return g;}
 
+function card(kind,icon,title,count){var c=document.createElement('section');c.className='card';
+  var h=document.createElement('div');h.className='card-h';
+  h.innerHTML='<h2>'+ic(icon)+esc(title)+'</h2><span class="count">'+count+'</span>';
+  c.appendChild(h);return {c:c,h:h};}
+
 function render(){
   PILLS={}; var box=el('ox-groups'); box.innerHTML='';
-  function card(kind,title,count){var c=document.createElement('section');c.className='card';
-    var h=document.createElement('div');h.className='ghead';
-    h.innerHTML='<h2><span class="kd k-'+kind+'"></span>'+esc(title)+'</h2><span class="cnt">'+count+'</span>';
-    c.appendChild(h);return {c:c,h:h};}
-
-  // Subscriptions — collapsible per sub (they can hold 100+ nodes)
+  // Subscriptions — one row per pool (warm-measured), expandable to its member nodes
   var subs=T.subscriptions||[];
   if(subs.length){
-    var sc=card('sub','Subscriptions',subs.length+' pools');
+    var sc=card('sub','i-globe','Subscriptions',subs.length+' pools');
     subs.forEach(function(s){
       var wrap=document.createElement('div');wrap.className='subgrp';
       var head=document.createElement('div');head.className='subhead';
-      head.innerHTML='<span class="chev">▸</span><span class="nm">'+esc(s.label)+'</span>'+
-        '<span class="val" data-grp="'+esc(s.tag)+'" style="min-width:52px;text-align:right;font-weight:700;font-size:12.5px;color:var(--faint);font-variant-numeric:tabular-nums">–</span>'+
-        '<span class="cnt">'+s.members.length+' nodes</span>';
-      // reliable: measure the pool as you'd actually use it (best live node)
-      var tp=document.createElement('button');tp.className='btn sm primary';tp.textContent='⚡ Test';
-      tp.title='Switch to this pool, measure its best live node, restore';
-      PILLS[s.tag]=head.querySelector('[data-grp]');   // paint the pool's own result here
+      head.innerHTML='<span class="exp">'+ic('i-chevron')+'</span><span class="nm">'+esc(s.label)+'</span>'+
+        '<span class="val" data-grp>–</span><span class="count">'+s.members.length+' nodes</span>';
+      var tp=document.createElement('button');tp.className='btn sm primary';tp.innerHTML=ic('i-bolt')+'Test';
+      tp.title='Measure this pool the way you’d use it (best live node)';
+      PILLS[s.tag]=head.querySelector('[data-grp]');
       tp.onclick=function(ev){ev.stopPropagation();measure(s.tag);};
-      // fast best-effort scan of the individual member nodes
       var ta=document.createElement('button');ta.className='btn sm';ta.textContent='Scan nodes';
-      ta.onclick=function(ev){ev.stopPropagation();wrap.classList.add('open');msg('Scanning '+s.label+' ('+s.members.length+' nodes, best-effort)…');
-        sweep(s.members.map(function(m){return m.tag;}),6).then(function(){msg(s.label+' scan done — cold nodes may show “down”.');});};
+      ta.onclick=function(ev){ev.stopPropagation();wrap.classList.add('open');msg('Scanning '+s.label+' — best-effort, cold nodes may read “down”.');
+        sweep(s.members.map(function(m){return m.tag;}),6).then(function(){msg(s.label+' scan complete.');});};
       head.appendChild(tp);head.appendChild(ta);
       var body=document.createElement('div');body.className='subbody';body.appendChild(gridOf(s.members,'delay'));
-      // clicking the row measures the pool's warm latency; the chevron expands nodes
       head.onclick=function(){measure(s.tag);};
-      head.querySelector('.chev').onclick=function(ev){ev.stopPropagation();wrap.classList.toggle('open');};
+      head.querySelector('.exp').onclick=function(ev){ev.stopPropagation();wrap.classList.toggle('open');};
       wrap.appendChild(head);wrap.appendChild(body);sc.c.appendChild(wrap);
     });
     box.appendChild(sc.c);
   }
-  // Balancers, Chains, Nodes, Tunnels — flat grids, reliably measured
-  function flat(kind,title,items){
-    if(!items||!items.length) return;
-    var g=card(kind,title,items.length);
-    var grp=document.createElement('button');grp.className='btn sm ghost';grp.textContent='Test all';
-    grp.onclick=function(){msg('Testing '+title+' (one at a time)…');measureSeq(items.map(function(x){return x.tag;})).then(function(){msg(title+' done');});};
-    g.h.appendChild(grp);
-    g.c.appendChild(gridOf(items,'measure'));box.appendChild(g.c);
-  }
-  flat('grp','Balancers',T.balancers);
-  flat('grp','Chains',T.chains);
-  flat('node','Nodes',T.nodes);
-  flat('static','Tunnels',T.tunnels);
-  if(T.direct) flat('node','Direct',[{tag:'direct',label:'direct (no proxy)'}]);
-
-  if(!box.children.length) box.innerHTML='<div class="card empty">Nothing to test yet — add a subscription or node on the Manage tab.</div>';
+  function flat(kind,icon,title,items){ if(!items||!items.length) return;
+    var g=card(kind,icon,title,items.length);
+    var all=document.createElement('button');all.className='btn ghost sm';all.textContent='Test all';
+    all.onclick=function(){msg('Measuring '+title+'…');measureSeq(items.map(function(x){return x.tag;})).then(function(){msg(title+' complete.');});};
+    g.h.appendChild(all); g.c.appendChild(gridOf(items,'measure')); box.appendChild(g.c);}
+  flat('grp','i-layers','Balancers',T.balancers);
+  flat('chain','i-link','Chains',T.chains);
+  flat('node','i-server','Nodes',T.nodes);
+  flat('tunnel','i-shield','Tunnels',T.tunnels);
+  if(T.direct) flat('node','i-globe','Direct',[{tag:'direct',label:'direct (no proxy)'}]);
+  if(!box.children.length) box.innerHTML='<div class="card"><div class="empty">'+ic('i-plus')+'Nothing to test yet — add a subscription or node on the Manage tab.</div></div>';
 }
 
-function loadTags(){
-  return fetch(OX_TAGS,{credentials:'same-origin'}).then(function(r){return r.json();}).then(function(t){
-    T=t||{}; render();
-  }).catch(function(e){msg('load error: '+e,true);});
-}
+function loadTags(){return fetch(OX_TAGS,{credentials:'same-origin'}).then(function(r){return r.json();})
+  .then(function(t){T=t||{};render();}).catch(function(e){msg('load error: '+e,true);});}
+function loadActive(){return fetch(OX_STATUS,{credentials:'same-origin'}).then(function(r){return r.json();}).then(function(s){
+  var on=s&&s.running;el('ox-active').className='pill '+(on?'on':'off');
+  el('ox-active-t').textContent=on?('Active · '+(s.active||'—').replace(/^sub:/,'')):'Core stopped';}).catch(function(){});}
 
-// target presets
 (function(){var p=el('tg-presets');
   TARGETS.forEach(function(t,i){var b=document.createElement('button');b.textContent=t[0];
     b.setAttribute('aria-pressed',String(i===0));
     b.onclick=function(){target=t[1];
       [].forEach.call(p.children,function(x,j){x.setAttribute('aria-pressed',String(j===i));});
-      el('tg-custom').classList.toggle('on',t[0]==='Custom');
-      if(t[0]==='Custom') el('tg-custom').focus();
-      msg('Target: '+(t[1]||'custom'));};
-    p.appendChild(b);});
-})();
+      el('tg-custom').classList.toggle('on',t[0]==='Custom'); if(t[0]==='Custom') el('tg-custom').focus();};
+    p.appendChild(b);});})();
 el('tg-all').onclick=function(){if(testingAll)return;testingAll=true;var b=el('tg-all');b.disabled=true;
-  var tags=switchableTags();msg('Measuring '+tags.length+' configs against '+currentTarget()+' (one at a time)…');
+  var tags=switchableTags();msg('Measuring '+tags.length+' configs against '+currentTarget()+' — one at a time…');
   measureSeq(tags).then(function(){testingAll=false;b.disabled=false;msg('Measured '+tags.length+' configs.');});};
-el('tg-reload').onclick=function(){loadTags();};
+el('tg-reload').onclick=function(){loadTags();loadActive();};
 
-loadTags();
+loadTags(); loadActive(); setInterval(loadActive,8000);
 //]]></script>
 <%+footer%>
