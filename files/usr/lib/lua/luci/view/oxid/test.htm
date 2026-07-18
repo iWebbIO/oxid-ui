@@ -99,7 +99,7 @@
     <div class="presets" id="tg-presets"></div>
     <input id="tg-custom" placeholder="https://your-endpoint/…" spellcheck="false" autocomplete="off">
     <span class="spacer"></span>
-    <button class="btn primary" id="tg-all">⚡ Test everything</button>
+    <button class="btn primary" id="tg-all" title="Measure every switchable config, one at a time">⚡ Test all configs</button>
     <button class="btn ghost sm" id="tg-reload" title="Reload the config list">↻</button>
   </div>
   <div class="legend">
@@ -108,6 +108,7 @@
     <span><i style="background:var(--ok)"></i>&lt;350</span>
     <span><i style="background:var(--slow)"></i>&lt;600</span>
     <span><i style="background:var(--bad)"></i>slow / down</span>
+    <span style="margin-left:auto">⚡ measures the real path (switches &amp; restores) · plain pills are a quick probe</span>
   </div>
 
   <div id="ox-groups" style="margin-top:16px"></div>
@@ -140,16 +141,36 @@ function currentTarget(){
 }
 function rclass(ms){return ms<100?'r-fast':ms<200?'r-good':ms<350?'r-ok':ms<600?'r-slow':'r-bad';}
 
-// one probe: measure <tag> to the current target, paint its pill
+function paint(tag,r){
+  var el2=PILLS[tag]; if(!el2) return; var v=el2.querySelector('.val');
+  if(r&&r.ms!=null&&!r.error){ el2.className='pill '+rclass(r.ms); v.textContent=r.ms+' ms'; }
+  else { el2.className='pill r-bad'; v.textContent='down'; }
+}
+// fast, best-effort: on-demand clash delay. Great for warm/reachable nodes; cold
+// idle nodes on a censored path may read "down" even when usable — that's what
+// measure() is for. Used to scan the many members inside a subscription.
 function probe(tag){
   var el2=PILLS[tag]; if(!el2) return Promise.resolve();
   el2.className='pill testing'; el2.querySelector('.val').textContent='···';
   return post({act:'delay',arg:tag,body:currentTarget()}).then(function(j){
     var r={}; try{r=JSON.parse((j.out||'').trim());}catch(e){}
-    var v=el2.querySelector('.val');
-    if(r.ms!=null && !r.error){ el2.className='pill '+rclass(r.ms); v.textContent=r.ms+' ms'; }
-    else { el2.className='pill r-bad'; v.textContent='down'; }
-  }).catch(function(){el2.className='pill r-bad';el2.querySelector('.val').textContent='err';});
+    paint(tag,r);
+  }).catch(function(){paint(tag,{error:1});});
+}
+// reliable: switch to <tag>, let it establish, time a real fetch through it,
+// restore. Slower (~5s) and one-at-a-time (it moves the live exit), but it's the
+// true latency of actually using this config. Used for switchable configs.
+function measure(tag){
+  var el2=PILLS[tag]; if(!el2) return Promise.resolve();
+  el2.className='pill testing'; el2.querySelector('.val').textContent='warming…';
+  return post({act:'measure',arg:tag,body:currentTarget()}).then(function(j){
+    var r={}; try{r=JSON.parse((j.out||'').trim());}catch(e){}
+    paint(tag,r);
+  }).catch(function(){paint(tag,{error:1});});
+}
+// measure a list one-at-a-time (they each move the live exit, can't run in parallel)
+function measureSeq(tags){
+  return tags.reduce(function(p,t){return p.then(function(){return measure(t);});},Promise.resolve());
 }
 // bounded-concurrency sweep
 function sweep(tags,conc){
@@ -161,9 +182,11 @@ function sweep(tags,conc){
     })();
   });
 }
-function allTags(){
+// the switchable configs (what you'd actually route through) — reliably measured.
+// NOT the hundreds of individual sub-members; scan those per-pool with "Scan nodes".
+function switchableTags(){
   var out=[];
-  (T.subscriptions||[]).forEach(function(s){s.members.forEach(function(m){out.push(m.tag);});});
+  (T.subscriptions||[]).forEach(function(s){out.push(s.tag);});
   (T.balancers||[]).forEach(function(b){out.push(b.tag);});
   (T.chains||[]).forEach(function(c){out.push(c.tag);});
   (T.nodes||[]).forEach(function(n){out.push(n.tag);});
@@ -172,14 +195,15 @@ function allTags(){
   return out;
 }
 
-function pill(tag,label){
+function pill(tag,label,mode){
   var b=document.createElement('button');b.className='pill';b.type='button';
+  b.title=mode==='measure'?'Click: switch to this, measure real latency, restore':'Click: quick delay probe';
   b.innerHTML='<span class="dotm"></span><span class="nm">'+esc(label)+'</span><span class="val">–</span>';
-  b.onclick=function(){probe(tag);};
+  b.onclick=function(){(mode==='measure'?measure:probe)(tag);};
   PILLS[tag]=b; return b;
 }
-function gridOf(members){var g=document.createElement('div');g.className='grid';
-  members.forEach(function(m){g.appendChild(pill(m.tag,m.label));});return g;}
+function gridOf(members,mode){var g=document.createElement('div');g.className='grid';
+  members.forEach(function(m){g.appendChild(pill(m.tag,m.label,mode));});return g;}
 
 function render(){
   PILLS={}; var box=el('ox-groups'); box.innerHTML='';
@@ -195,25 +219,35 @@ function render(){
     subs.forEach(function(s){
       var wrap=document.createElement('div');wrap.className='subgrp';
       var head=document.createElement('div');head.className='subhead';
-      head.innerHTML='<span class="chev">▸</span><span class="nm">'+esc(s.label)+'</span><span class="cnt">'+s.members.length+' nodes</span>';
-      var ta=document.createElement('button');ta.className='btn sm';ta.textContent='Test all';
-      ta.onclick=function(ev){ev.stopPropagation();wrap.classList.add('open');msg('Testing '+s.label+' ('+s.members.length+' nodes)…');
-        sweep(s.members.map(function(m){return m.tag;}),6).then(function(){msg(s.label+' done');});};
-      head.appendChild(ta);
-      var body=document.createElement('div');body.className='subbody';body.appendChild(gridOf(s.members));
-      head.onclick=function(){wrap.classList.toggle('open');};
+      head.innerHTML='<span class="chev">▸</span><span class="nm">'+esc(s.label)+'</span>'+
+        '<span class="val" data-grp="'+esc(s.tag)+'" style="min-width:52px;text-align:right;font-weight:700;font-size:12.5px;color:var(--faint);font-variant-numeric:tabular-nums">–</span>'+
+        '<span class="cnt">'+s.members.length+' nodes</span>';
+      // reliable: measure the pool as you'd actually use it (best live node)
+      var tp=document.createElement('button');tp.className='btn sm primary';tp.textContent='⚡ Test';
+      tp.title='Switch to this pool, measure its best live node, restore';
+      PILLS[s.tag]=head.querySelector('[data-grp]');   // paint the pool's own result here
+      tp.onclick=function(ev){ev.stopPropagation();measure(s.tag);};
+      // fast best-effort scan of the individual member nodes
+      var ta=document.createElement('button');ta.className='btn sm';ta.textContent='Scan nodes';
+      ta.onclick=function(ev){ev.stopPropagation();wrap.classList.add('open');msg('Scanning '+s.label+' ('+s.members.length+' nodes, best-effort)…');
+        sweep(s.members.map(function(m){return m.tag;}),6).then(function(){msg(s.label+' scan done — cold nodes may show “down”.');});};
+      head.appendChild(tp);head.appendChild(ta);
+      var body=document.createElement('div');body.className='subbody';body.appendChild(gridOf(s.members,'delay'));
+      // clicking the row measures the pool's warm latency; the chevron expands nodes
+      head.onclick=function(){measure(s.tag);};
+      head.querySelector('.chev').onclick=function(ev){ev.stopPropagation();wrap.classList.toggle('open');};
       wrap.appendChild(head);wrap.appendChild(body);sc.c.appendChild(wrap);
     });
     box.appendChild(sc.c);
   }
-  // Balancers, Chains, Nodes, Tunnels — flat grids
+  // Balancers, Chains, Nodes, Tunnels — flat grids, reliably measured
   function flat(kind,title,items){
     if(!items||!items.length) return;
     var g=card(kind,title,items.length);
     var grp=document.createElement('button');grp.className='btn sm ghost';grp.textContent='Test all';
-    grp.onclick=function(){msg('Testing '+title+'…');sweep(items.map(function(x){return x.tag;}),5).then(function(){msg(title+' done');});};
+    grp.onclick=function(){msg('Testing '+title+' (one at a time)…');measureSeq(items.map(function(x){return x.tag;})).then(function(){msg(title+' done');});};
     g.h.appendChild(grp);
-    g.c.appendChild(gridOf(items));box.appendChild(g.c);
+    g.c.appendChild(gridOf(items,'measure'));box.appendChild(g.c);
   }
   flat('grp','Balancers',T.balancers);
   flat('grp','Chains',T.chains);
@@ -242,8 +276,8 @@ function loadTags(){
     p.appendChild(b);});
 })();
 el('tg-all').onclick=function(){if(testingAll)return;testingAll=true;var b=el('tg-all');b.disabled=true;
-  var tags=allTags();msg('Testing '+tags.length+' configs against '+currentTarget()+'…');
-  sweep(tags,6).then(function(){testingAll=false;b.disabled=false;msg('Tested '+tags.length+' configs.');});};
+  var tags=switchableTags();msg('Measuring '+tags.length+' configs against '+currentTarget()+' (one at a time)…');
+  measureSeq(tags).then(function(){testingAll=false;b.disabled=false;msg('Measured '+tags.length+' configs.');});};
 el('tg-reload').onclick=function(){loadTags();};
 
 loadTags();

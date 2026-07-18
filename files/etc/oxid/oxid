@@ -141,10 +141,10 @@ def q(s):
         o.append(c if (c.isalnum() or c in "-_.~:") else "%%%02X"%by)
     return "".join(o)
 tag=os.environ["TAG"]; url=os.environ["URL"]; sec=os.environ["SEC"]
-u="http://127.0.0.1:9090/proxies/%s/delay?url=%s&timeout=8000"%(q(tag),q(url))
+u="http://127.0.0.1:9090/proxies/%s/delay?url=%s&timeout=12000"%(q(tag),q(url))
 def probe():
     try:
-        r=subprocess.check_output(["curl","-m","12","-sS","-H","Authorization: Bearer "+sec,u],
+        r=subprocess.check_output(["curl","-m","15","-sS","-H","Authorization: Bearer "+sec,u],
                                   stderr=subprocess.DEVNULL).decode("utf-8","replace")
         d=json.loads(r); return d.get("delay") if "delay" in d else None
     except Exception:
@@ -152,7 +152,7 @@ def probe():
 best=None
 for i in range(2):
     ms=probe()
-    if ms is None: break               # dead/timeout -> don't waste a 2nd 8s probe
+    if ms is None: break               # dead/timeout -> don't waste a 2nd 15s probe
     best=ms if best is None else min(best,ms)
     if best<800: break                 # already good; only re-probe to warm a slow-but-alive node
 print(json.dumps({"tag":tag,"ms":best} if best is not None else {"tag":tag,"error":"timeout"}))
@@ -163,6 +163,28 @@ conntest() { # {"ip","ms"} through the proxy
     local r ip t; r=$(curl -m15 -sS -w '\n%{time_total}' --socks5-hostname "127.0.0.1:$p" https://api.ipify.org 2>/dev/null)
     ip=$(printf '%s' "$r" | head -1); t=$(printf '%s' "$r" | tail -1)
     [ -n "$ip" ] && [ "$ip" != "$t" ] && echo "{\"ip\":\"$ip\",\"ms\":$(awk "BEGIN{printf \"%d\",$t*1000}")}" || echo '{"ip":"","ms":0}'
+}
+measure() { # measure <tag> [url] -> {"tag","ms"} | {"tag","error"}   (WARM latency)
+    # Reports the WARM round-trip you actually feel — the same ~300-400ms a phone
+    # app shows — NOT the one-off cold handshake. It switches the live selector to
+    # <tag> (no restart, no UCI change), then fires several requests over a SINGLE
+    # keepalive tunnel: the first pays the cold TLS/reality handshake, the rest ride
+    # the established connection at steady-state latency. We report the fastest warm
+    # sample and restore the previous selection. On-demand clash /delay can't do
+    # this — it only ever measures a fresh cold dial, so good nodes read as "down".
+    local tag="$1" url="${2:-https://www.gstatic.com/generate_204}"
+    local p prev; p=$(uci -q get oxid.main.socks_port || echo 7890)
+    prev=$(api GET /proxies/PROXY 2>/dev/null | python3 -c "import sys,json;print(json.load(sys.stdin).get('now',''))" 2>/dev/null)
+    api PUT /proxies/PROXY "{\"name\":\"$tag\"}" >/dev/null 2>&1
+    # nudge a urltest pool to pick a live member (not a cold dud) before we time it
+    api GET "/proxies/$(printf '%s' "$tag" | sed 's/:/%3A/g')/delay?url=$url&timeout=6000" >/dev/null 2>&1
+    sleep 1
+    # 6 requests, one connection: drop #1 (cold), keep the fastest warm sample.
+    local out; out=$(curl -m20 -sS -o /dev/null --socks5-hostname "127.0.0.1:$p" \
+        -w '%{time_total}\n' "$url" "$url" "$url" "$url" "$url" "$url" 2>/dev/null)
+    [ -n "$prev" ] && [ "$prev" != "$tag" ] && api PUT /proxies/PROXY "{\"name\":\"$prev\"}" >/dev/null 2>&1
+    local ms; ms=$(printf '%s\n' "$out" | awk 'NR>1{v=int($1*1000+0.5); if(m==""||v<m)m=v} END{print (m=="")?"":m}')
+    if [ -n "$ms" ]; then echo "{\"tag\":\"$tag\",\"ms\":$ms}"; else echo "{\"tag\":\"$tag\",\"error\":\"unreachable\"}"; fi
 }
 mutate() { # run a UCI edit (reads JSON on stdin), then load it into the core.
     # Subs are unchanged by a node/chain/group edit, so regen OFFLINE (disk cache,
@@ -192,6 +214,7 @@ case "$1" in
     watchdog) watchdog ;;
     status)  status ;;
     test)    conntest ;;
+    measure) measure "$2" "$3" ;;             # switch+settle+time+restore (reliable)
     self-update)        "$ETC/oxid-update.sh" ;;          # update panel from GitHub, no core restart
     self-update-apply)  "$ETC/oxid-update.sh" --apply ;;  # update + restart core (the button's arrow)
     static-del)  rm -f "$STATIC/$2.json" && stage; echo "deleted $2" ;;

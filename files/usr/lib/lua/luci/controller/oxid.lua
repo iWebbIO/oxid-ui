@@ -55,6 +55,9 @@ function act_do()
 	elseif a == "delay" then
 		-- arg = outbound tag, body = target URL; measured through the tunnel
 		out = util.exec(CTL .. " delay " .. sq(arg) .. " " .. sq(body or ""))
+	elseif a == "measure" then
+		-- reliable: switch live to arg, settle, time a fetch through it, restore
+		out = util.exec(CTL .. " measure " .. sq(arg) .. " " .. sq(body or ""))
 	elseif a == "self-update" then
 		-- run detached: self-update reinstalls this very controller mid-request
 		util.exec("(" .. CTL .. " self-update) >/tmp/oxid/update.log 2>&1 &")
